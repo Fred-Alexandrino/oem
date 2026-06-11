@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard O&M — Inversores Solares</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2330;
+    --bg4: #21262d;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --blue: #388bfd;
+    --blue-dim: #1f4073;
+    --blue-bg: #0d2241;
+    --green: #3fb950;
+    --green-bg: #0d2818;
+    --amber: #d29922;
+    --amber-bg: #2d1f00;
+    --red: #f85149;
+    --red-bg: #300d0d;
+    --teal: #39d353;
+    --accent: #388bfd;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--blue-dim);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { width: 16px; height: 16px; stroke: var(--blue); stroke-width: 2; fill: none; }
+  .logo-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .logo-sub { font-size: 10px; color: var(--text3); }
+
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; padding: 8px 8px 4px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    margin-bottom: 1px;
+  }
+
+  .nav-item svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--blue-bg); color: var(--blue); }
+
+  .sidebar-footer {
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .topbar-left h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .topbar-left p { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+
+  .btn-outline svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .btn-outline:hover { background: var(--bg3); color: var(--text); }
+
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* ── KPI Cards ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  .kpi {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi.blue::before { background: var(--blue); }
+  .kpi.green::before { background: var(--green); }
+  .kpi.amber::before { background: var(--amber); }
+  .kpi.red::before { background: var(--red); }
+
+  .kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 6px; }
+  .kpi.blue .kpi-value { color: var(--blue); }
+  .kpi.green .kpi-value { color: var(--green); }
+  .kpi.amber .kpi-value { color: var(--amber); }
+  .kpi.red .kpi-value { color: var(--red); }
+  .kpi-meta { font-size: 11px; color: var(--text3); }
+
+  /* ── Filters ── */
+  .filter-bar {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .filter-group-label { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  .pill {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .pill:hover { background: var(--bg3); color: var(--text); }
+  .pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .pill.green-active { background: var(--green); color: #0a1f0a; border-color: var(--green); }
+  .pill.amber-active { background: var(--amber); color: #1a1000; border-color: var(--amber); }
+
+  /* ── Charts row ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .chart-card-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-lbl { font-size: 12px; color: var(--text2); width: 120px; flex-shrink: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 18px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 7px; font-size: 11px; font-weight: 600; color: #fff; transition: width .5s cubic-bezier(.4,0,.2,1); }
+  .bar-count { font-size: 12px; color: var(--text3); min-width: 20px; text-align: right; }
+
+  /* Donut chart */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-val { font-weight: 600; color: var(--text); margin-left: auto; padding-left: 12px; }
+
+  /* ── Gantt ── */
+  .gantt-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+
+  .gantt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .gantt-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; }
+
+  .gantt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .gantt-lbl { font-size: 11px; color: var(--text2); width: 90px; flex-shrink: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gantt-track { flex: 1; height: 20px; background: var(--bg4); border-radius: 4px; position: relative; overflow: hidden; }
+  .gantt-bar { position: absolute; height: 100%; border-radius: 3px; display: flex; align-items: center; padding: 0 6px; font-size: 10px; font-weight: 500; color: rgba(255,255,255,.9); white-space: nowrap; overflow: hidden; }
+  .gantt-usina-lbl { font-size: 11px; color: var(--text3); width: 90px; flex-shrink: 0; text-align: right; }
+  .gantt-axis { display: flex; gap: 10px; padding-left: 100px; margin-bottom: 6px; }
+  .gantt-axis-lbl { flex: 1; font-size: 10px; color: var(--text3); text-align: center; }
+
+  /* ── Table ── */
+  .table-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .table-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; }
+  .table-count { font-size: 12px; color: var(--text3); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg3);
+    padding: 9px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.row-high td { background: rgba(248, 81, 73, .05); }
+  tr.row-med td { background: rgba(210, 153, 34, .05); }
+  tr:hover td { background: var(--bg3); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+  .id-chip { font-family: monospace; font-size: 12px; color: var(--blue); font-weight: 600; }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .pager-btns { display: flex; gap: 6px; }
+  .pager-btn {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .pager-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text); }
+  .pager-btn:disabled { opacity: .3; cursor: default; }
+
+  /* ── Alert banner ── */
+  .alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(248,81,73,.08);
+    border: 1px solid rgba(248,81,73,.25);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  .alert-icon { width: 18px; height: 18px; stroke: var(--red); stroke-width: 2; fill: none; flex-shrink: 0; margin-top: 1px; }
+  .alert-text strong { color: var(--red); font-weight: 600; }
+  .alert-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+    .topbar { padding: 12px 16px; }
+  }
+
+  @media (max-width: 500px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  .section-spacer { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">SolarOps</div>
+        <div class="logo-sub">O&M Dashboard</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Monitoramento</div>
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Visão geral
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Inversores
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Geração
+      </div>
+      <div class="nav-section" style="margin-top:8px">Manutenção</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M22 12h-2M4 12H2M12 4V2M12 22v-2"/></svg>
+        Ordens de serviço
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Relatórios
+      </div>
+      <div class="nav-section" style="margin-top:8px">Segurança</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Ocorrências
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Alertas
+      </div>
+    </nav>
+    <div class="sidebar-footer">Portfólio: 4 usinas · Huawei</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>Histórico de Falhas — Inversores</h1>
+        <p id="topbar-sub">Carregando dados...</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-outline" onclick="exportCSV()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button class="btn-outline" id="btn-refresh" onclick="refreshTimestamp()">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Atualizar
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Alert banner -->
+      <div class="alert-banner">
+        <svg class="alert-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="alert-text">
+          <strong>Padrão crítico identificado:</strong> 100% das ocorrências são causadas por furto de cabos, com 3 usinas afetadas em sequência entre Abr–Jun 2026. Recomenda-se revisão urgente do protocolo de segurança patrimonial.
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-group-label">Usina</span>
+          <div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">Fabricante</span>
+          <div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">Status</span>
+          <div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">Causas de falha</div>
+          <div id="chart-causas"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Falhas por usina</div>
+          <div id="chart-usinas"></div>
+        </div>
+      </div>
+
+      <!-- Second charts row: MTTR + Donut -->
+      <div class="charts-row section-spacer">
+        <div class="chart-card">
+          <div class="chart-card-title">MTTR por usina (dias)</div>
+          <div id="chart-mttr"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Tipo de correção</div>
+          <div id="chart-tipo"></div>
+        </div>
+      </div>
+
+      <!-- Gantt -->
+      <div class="gantt-card">
+        <div class="gantt-header">
+          <div class="gantt-title">Linha do tempo de inoperância</div>
+          <span style="font-size:11px;color:var(--text3)">Abr — Jun 2026</span>
+        </div>
+        <div id="gantt-chart"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Detalhes operacionais</span>
+          <span class="table-count" id="table-count"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th style="width:110px">Usina</th>
+                <th style="width:65px">Inv.</th>
+                <th style="width:90px">Ocorrência</th>
+                <th style="width:130px">Causa</th>
+                <th style="width:110px">Medida</th>
+                <th style="width:70px">Inoper.</th>
+                <th style="width:75px">Dias</th>
+                <th style="width:80px">MTTR</th>
+                <th style="width:85px">Status</th>
+                <th style="width:75px">Fabricante</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" style="display:none">Nenhum registro para os filtros selecionados.</div>
+        <div class="pager">
+          <span id="pager-info"></span>
+          <div class="pager-btns">
+            <button class="pager-btn" id="btn-prev" onclick="changePage(-1)">← Anterior</button>
+            <button class="pager-btn" id="btn-next" onclick="changePage(1)">Próximo →</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const DATA = [
+  {id:"FAL-001",usina:"Ibaté I",inv:"INV-04",dataOc:"2026-04-18",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-14",fab:"Huawei",tipo:"Campo",inop:1.0,dias:26},
+  {id:"FAL-002",usina:"Ibaté I",inv:"INV-05",dataOc:"2026-04-18",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-13",fab:"Huawei",tipo:"Campo",inop:1.0,dias:25},
+  {id:"FAL-003",usina:"Ibaté I",inv:"INV-06",dataOc:"2026-04-18",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-12",fab:"Huawei",tipo:"Campo",inop:0.5,dias:24},
+  {id:"FAL-004",usina:"Ibaté II",inv:"INV-04",dataOc:"2026-04-30",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-19",fab:"Huawei",tipo:"Campo",inop:0.5,dias:19},
+  {id:"FAL-005",usina:"Ibaté II",inv:"INV-06",dataOc:"2026-04-30",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-21",fab:"Huawei",tipo:"Campo",inop:0.2,dias:21},
+  {id:"FAL-006",usina:"Ibaté II",inv:"INV-07",dataOc:"2026-04-18",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-19",fab:"Huawei",tipo:"Campo",inop:1.0,dias:31},
+  {id:"FAL-007",usina:"Ibaté II",inv:"INV-08",dataOc:"2026-04-18",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-19",fab:"Huawei",tipo:"Campo",inop:0.375,dias:31},
+  {id:"FAL-008",usina:"Ibaté II",inv:"INV-01",dataOc:"2026-04-30",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-18",fab:"Huawei",tipo:"Campo",inop:1.0,dias:18},
+  {id:"FAL-009",usina:"Ibaté II",inv:"INV-11",dataOc:"2026-04-30",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-21",fab:"Huawei",tipo:"Campo",inop:0.375,dias:21},
+  {id:"FAL-010",usina:"Ibaté II",inv:"INV-02",dataOc:"2026-04-30",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-19",fab:"Huawei",tipo:"Campo",inop:1.0,dias:19},
+  {id:"FAL-011",usina:"Boa Esperança A",inv:"INV-08",dataOc:"2026-05-27",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-29",fab:"Huawei",tipo:"Campo",inop:0.4,dias:2},
+  {id:"FAL-012",usina:"Boa Esperança A",inv:"INV-09",dataOc:"2026-05-27",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-05-29",fab:"Huawei",tipo:"Campo",inop:1.0,dias:2},
+  {id:"FAL-013",usina:"Boa Esperança A",inv:"INV-10",dataOc:"2026-05-27",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-06-03",fab:"Huawei",tipo:"Campo",inop:1.0,dias:7},
+  {id:"FAL-014",usina:"Boa Esperança B",inv:"INV-02",dataOc:"2026-05-27",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-06-01",fab:"Huawei",tipo:"Campo",inop:0.5,dias:5},
+  {id:"FAL-015",usina:"Boa Esperança B",inv:"INV-03",dataOc:"2026-05-27",causa:"Furto de cabos",medida:"Recomposição",status:"Concluído",dataFim:"2026-06-01",fab:"Huawei",tipo:"Campo",inop:0.8,dias:5},
+];
+
+const PAGE_SIZE = 10;
+let page = 0;
+let filters = {usina:"Todos", fab:"Todos", status:"Todos"};
+
+const USINA_COLORS = {
+  "Ibaté I":         "#388bfd",
+  "Ibaté II":        "#d29922",
+  "Boa Esperança A": "#3fb950",
+  "Boa Esperança B": "#a371f7",
+};
+
+function uniq(arr, k) { return ["Todos", ...new Set(arr.map(r => r[k]))]; }
+
+function filtered() {
+  return DATA.filter(r => {
+    if (filters.usina !== "Todos" && r.usina !== filters.usina) return false;
+    if (filters.fab   !== "Todos" && r.fab   !== filters.fab)   return false;
+    if (filters.status !== "Todos" && r.status !== filters.status) return false;
+    return true;
+  });
+}
+
+function setFilter(k, v) { filters[k] = v; page = 0; render(); }
+
+function renderPills(containerId, vals, key, colorFn) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = vals.map(v => {
+    const isActive = filters[key] === v;
+    let cls = 'pill' + (isActive ? ' active' : '');
+    return `<button class="${cls}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`;
+  }).join('');
+}
+
+function renderKPIs(data) {
+  const total  = data.length;
+  const invs   = new Set(data.map(r => r.inv)).size;
+  const diasTot = data.reduce((s, r) => s + r.dias, 0);
+  const open   = data.filter(r => r.status === "Em Aberto").length;
+  const done   = data.filter(r => r.status === "Concluído").length;
+  const avgMTTR = total > 0 ? (diasTot / total).toFixed(1) : 0;
+  const pctInop = total > 0 ? ((data.reduce((s,r) => s + r.inop, 0) / total) * 100).toFixed(0) : 0;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi blue">
+      <div class="kpi-label">Total de ocorrências</div>
+      <div class="kpi-value">${total}</div>
+      <div class="kpi-meta">${invs} inversores afetados</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Tempo inoperante</div>
+      <div class="kpi-value">${diasTot}</div>
+      <div class="kpi-meta">dias acumulados</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">MTTR médio</div>
+      <div class="kpi-value">${avgMTTR}</div>
+      <div class="kpi-meta">dias por ocorrência</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Concluídos</div>
+      <div class="kpi-value">${done}</div>
+      <div class="kpi-meta">${open > 0 ? open + ' em aberto' : 'todos resolvidos'}</div>
+    </div>
+  `;
+}
+
+function renderBarChart(containerId, data, groupKey, colorFn) {
+  const counts = {};
+  data.forEach(r => { const k = r[groupKey]; counts[k] = (counts[k] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const max = sorted[0] ? sorted[0][1] : 1;
+  const el = document.getElementById(containerId);
+  if (!sorted.length) { el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">Sem dados</div>'; return; }
+  el.innerHTML = sorted.map(([label, n]) => {
+    const pct = Math.round((n / max) * 100);
+    const color = colorFn ? colorFn(label) : '#388bfd';
+    return `<div class="bar-row">
+      <div class="bar-lbl" title="${label}">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">${n}</div></div>
+      <div class="bar-count">${n}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMTTR(data) {
+  const usinaMTTR = {};
+  const usinaCount = {};
+  data.forEach(r => {
+    usinaMTTR[r.usina]  = (usinaMTTR[r.usina]  || 0) + r.dias;
+    usinaCount[r.usina] = (usinaCount[r.usina] || 0) + 1;
+  });
+  const rows = Object.keys(usinaMTTR).map(u => [u, (usinaMTTR[u] / usinaCount[u])]);
+  rows.sort((a, b) => b[1] - a[1]);
+  const max = rows[0] ? rows[0][1] : 1;
+  const el = document.getElementById('chart-mttr');
+  if (!rows.length) { el.innerHTML = '<div style="color:var(--text3);font-size:12px">Sem dados</div>'; return; }
+  el.innerHTML = rows.map(([u, avg]) => {
+    const pct = Math.round((avg / max) * 100);
+    const color = USINA_COLORS[u] || '#388bfd';
+    return `<div class="bar-row">
+      <div class="bar-lbl" title="${u}">${u}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">${avg.toFixed(1)}d</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderTipo(data) {
+  const counts = {};
+  data.forEach(r => { counts[r.tipo] = (counts[r.tipo] || 0) + 1; });
+  const total = data.length;
+  const colors = ['#388bfd', '#3fb950', '#d29922', '#a371f7', '#f85149'];
+  const keys = Object.keys(counts);
+  const el = document.getElementById('chart-tipo');
+  if (!total) { el.innerHTML = '<div style="color:var(--text3);font-size:12px">Sem dados</div>'; return; }
+
+  // SVG donut
+  const cx = 60, cy = 60, r = 50, innerR = 30;
+  let startAngle = -Math.PI / 2;
+  const arcs = keys.map((k, i) => {
+    const frac = counts[k] / total;
+    const angle = frac * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    startAngle += angle;
+    const x2 = cx + r * Math.cos(startAngle);
+    const y2 = cy + r * Math.sin(startAngle);
+    const x3 = cx + innerR * Math.cos(startAngle);
+    const y3 = cy + innerR * Math.sin(startAngle);
+    const x4 = cx + innerR * Math.cos(startAngle - angle);
+    const y4 = cy + innerR * Math.sin(startAngle - angle);
+    const large = frac > 0.5 ? 1 : 0;
+    return { k, n: counts[k], frac, color: colors[i % colors.length],
+      path: `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${x3.toFixed(2)},${y3.toFixed(2)} A${innerR},${innerR} 0 ${large},0 ${x4.toFixed(2)},${y4.toFixed(2)} Z` };
+  });
+
+  const legend = keys.map((k, i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${colors[i % colors.length]}"></div>
+      <span>${k}</span>
+      <span class="legend-val">${counts[k]}</span>
+    </div>`).join('');
+
+  el.innerHTML = `<div class="donut-wrap">
+    <svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">
+      ${arcs.map(a => `<path d="${a.path}" fill="${a.color}"/>`).join('')}
+      <text x="60" y="56" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">${total}</text>
+      <text x="60" y="70" text-anchor="middle" fill="var(--text3)" font-size="10">eventos</text>
+    </svg>
+    <div class="donut-legend">${legend}</div>
+  </div>`;
+}
+
+function renderGantt(data) {
+  const el = document.getElementById('gantt-chart');
+  if (!data.length) { el.innerHTML = '<div style="color:var(--text3);font-size:12px">Sem dados</div>'; return; }
+
+  const parseDate = s => new Date(s);
+  const allDates = data.flatMap(r => [parseDate(r.dataOc), parseDate(r.dataFim)]);
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(Math.max(...allDates));
+  const totalMs  = maxDate - minDate;
+
+  const months = [];
+  let cur = new Date(minDate);
+  while (cur <= maxDate) {
+    months.push(cur.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}));
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+  }
+
+  const sorted = [...data].sort((a,b) => a.dataOc.localeCompare(b.dataOc));
+
+  const rows = sorted.map(r => {
+    const start = parseDate(r.dataOc);
+    const end   = parseDate(r.dataFim);
+    const left  = ((start - minDate) / totalMs * 100).toFixed(2);
+    const width = Math.max(((end - start) / totalMs * 100).toFixed(2), 1);
+    const color = USINA_COLORS[r.usina] || '#388bfd';
+    return `<div class="gantt-row">
+      <div class="gantt-lbl">${r.id}</div>
+      <div class="gantt-track">
+        <div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color};opacity:.85" title="${r.usina} · ${r.inv} · ${r.dias} dias">
+          ${r.inv}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="gantt-row" style="margin-bottom:8px">
+      <div class="gantt-lbl"></div>
+      <div style="flex:1;display:flex;gap:0">
+        ${months.map(m => `<div style="flex:1;font-size:10px;color:var(--text3);border-left:1px solid var(--border);padding-left:4px">${m}</div>`).join('')}
+      </div>
+    </div>
+    ${rows}
+    <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px">
+      ${Object.entries(USINA_COLORS).map(([u,c]) => `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:10px;height:10px;background:${c};border-radius:2px;display:inline-block"></span>${u}</div>`).join('')}
+    </div>
+  `;
+}
+
+function renderTable(data) {
+  const start = page * PAGE_SIZE;
+  const slice = data.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+  const count = document.getElementById('table-count');
+
+  count.textContent = `${data.length} registros`;
+
+  if (!data.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('pager-info').textContent = '';
+    document.getElementById('btn-prev').disabled = true;
+    document.getElementById('btn-next').disabled = true;
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = slice.map(r => {
+    const cls = r.dias >= 25 ? 'row-high' : r.dias >= 15 ? 'row-med' : '';
+    const badge = r.status === 'Concluído'
+      ? '<span class="badge badge-green">✓ Concluído</span>'
+      : '<span class="badge badge-red">● Em aberto</span>';
+    const inopStr = (r.inop * 100).toFixed(0) + '%';
+    const usinaColor = USINA_COLORS[r.usina] || '#888';
+    return `<tr class="${cls}">
+      <td><span class="id-chip">${r.id}</span></td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${usinaColor};flex-shrink:0"></span>${r.usina}</span></td>
+      <td>${r.inv}</td>
+      <td>${r.dataOc}</td>
+      <td title="${r.causa}">${r.causa}</td>
+      <td>${r.medida}</td>
+      <td><span class="badge badge-amber">${inopStr}</span></td>
+      <td><span style="font-weight:600;color:${r.dias >= 25 ? 'var(--red)' : r.dias >= 15 ? 'var(--amber)' : 'var(--text)'}">${r.dias}d</span></td>
+      <td>${r.dias}d</td>
+      <td>${badge}</td>
+      <td>${r.fab}</td>
+    </tr>`;
+  }).join('');
+
+  const end = Math.min(start + PAGE_SIZE, data.length);
+  document.getElementById('pager-info').textContent = `${start + 1}–${end} de ${data.length}`;
+  document.getElementById('btn-prev').disabled = page === 0;
+  document.getElementById('btn-next').disabled = end >= data.length;
+}
+
+function changePage(d) {
+  const data = filtered();
+  const maxPage = Math.ceil(data.length / PAGE_SIZE) - 1;
+  page = Math.max(0, Math.min(maxPage, page + d));
+  renderTable(data);
+}
+
+function render() {
+  const data = filtered();
+  renderPills('f-usina',  uniq(DATA, 'usina'),  'usina');
+  renderPills('f-fab',    uniq(DATA, 'fab'),    'fab');
+  renderPills('f-status', ['Todos','Concluído','Em Aberto'], 'status');
+  renderKPIs(data);
+  renderBarChart('chart-causas', data, 'causa', () => '#388bfd');
+  renderBarChart('chart-usinas', data, 'usina', u => USINA_COLORS[u] || '#388bfd');
+  renderMTTR(data);
+  renderTipo(data);
+  renderGantt(data);
+  renderTable(data);
+  updateTopbarSub(data);
+}
+
+function updateTopbarSub(data) {
+  const usinas = new Set(data.map(r => r.usina)).size;
+  const now = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('topbar-sub').textContent = `${usinas} usinas · Atualizado: ${now}`;
+}
+
+function refreshTimestamp() {
+  const btn = document.getElementById('btn-refresh');
+  btn.textContent = '✓ Atualizado';
+  setTimeout(() => {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;display:inline-block;vertical-align:-2px;margin-right:5px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Atualizar';
+    updateTopbarSub(filtered());
+  }, 1500);
+  updateTopbarSub(filtered());
+}
+
+function exportCSV() {
+  const data = filtered();
+  const cols = ['ID','Usina','Inversor','Data Ocorrência','Causa','Medida','Inoperância','Dias','Status','Fabricante','Tipo'];
+  const rows = data.map(r => [r.id, r.usina, r.inv, r.dataOc, r.causa, r.medida, (r.inop*100).toFixed(0)+'%', r.dias, r.status, r.fab, r.tipo]);
+  const csv = [cols, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'falhas_inversores_om.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+render();
+</script>
+</body>
+</html>
