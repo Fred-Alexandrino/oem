@@ -104,11 +104,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 .empty-big h2{font-size:18px;font-weight:600;color:var(--text)}
 .empty-big p{font-size:13px;color:var(--text3);max-width:360px;line-height:1.6}
 .empty-state{padding:36px;text-align:center;color:var(--text3);font-size:13px}
-.donut-wrap{display:flex;align-items:center;gap:18px}
-.donut-legend{display:flex;flex-direction:column;gap:8px}
-.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
-.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.legend-val{font-weight:600;color:var(--text);margin-left:auto;padding-left:10px}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:480px;max-width:92vw;overflow:hidden}
 .modal-header{padding:20px 22px 16px;border-bottom:1px solid var(--border)}
@@ -158,7 +153,7 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
     <div class="topbar-actions">
       <button class="btn btn-sheets" id="btn-sheets" onclick="loadCurrentTabSheets()">
         <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        <span id="sheets-btn-label">Atualizar do Google Sheets</span>
+        <span id="sheets-btn-label">Atualizar da Nuvem</span>
       </button>
       <div class="btn-sep"></div>
       <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled>
@@ -243,7 +238,7 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 <div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Publicar no GitHub Pages</div></div>
-    <div class="modal-body"><div id="pub-info">Link: <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank">Fred-Alexandrino.github.io/oem/</a></div></div>
+    <div class="modal-body"><div id="pub-info">Link: <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank" style="color:var(--blue)">Fred-Alexandrino.github.io/oem/</a></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closePublishModal()">Cancelar</button>
       <button class="btn btn-publish" onclick="publishToGitHub()">Publicar agora</button>
@@ -255,9 +250,9 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 let currentTab = 'situacao';
 const SHEETS_ID_BASE = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
 const SHEETS_GID_BASE = '1539484372';
-// URL da planilha Gestão de Chamados convertida estruturalmente para leitura de binário direto via API
-const SHEETS_ID_CHAMADOS = '1N7_0WwFwP29g7YWh_E4zOve_P63nC9I6f3aZ3Yv7-f0'; 
-const SHEETS_GID_CHAMADOS = '0';
+
+// Link direto de download da planilha do SharePoint
+const SHAREPOINT_URL_CHAMADOS = 'https://gridcobr.sharepoint.com/:x:/s/GRIDCO/IQB64AH7qFdbT7z3bz2Sc_kzAWcF0so1GpYHFa6Ch4QILBY?download=1';
 
 function switchTab(tab) {
   currentTab = tab;
@@ -265,7 +260,6 @@ function switchTab(tab) {
   document.getElementById('nav-chamados').className = tab === 'chamados' ? 'nav-item active' : 'nav-item';
   document.getElementById('topbar-title').textContent = tab === 'situacao' ? 'Situação Geral — Inversores' : 'Gestão de Chamados — Inversores';
   
-  // Reseta tela para recarregamento limpo
   document.getElementById('dashboard-screen').style.display = 'none';
   document.getElementById('empty-screen').style.display = 'flex';
 }
@@ -276,29 +270,37 @@ async function loadCurrentTabSheets() {
   btn.disabled = true;
   label.innerHTML = '<span class="spinner" style="display:inline-block"></span> Carregando...';
 
-  let url = '';
-  if (currentTab === 'situacao') {
-    url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_BASE}/export?format=xlsx&gid=${SHEETS_GID_BASE}`;
-  } else {
-    url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_CHAMADOS}/export?format=xlsx&gid=${SHEETS_GID_CHAMADOS}`;
-  }
-
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    
-    // CORREÇÃO DEFINITIVA DE ACENTOS: Lendo como arrayBuffer direto do xlsx exportado
-    const arrayBuffer = await res.arrayBuffer();
-    const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: '' });
+    let wb;
+    if (currentTab === 'situacao') {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_BASE}/export?format=csv&gid=${SHEETS_GID_BASE}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const buffer = await res.arrayBuffer();
+      const text = new TextDecoder('utf-8').decode(buffer);
+      
+      if (text.trim().startsWith('<!DOCTYPE html>')) {
+        throw new Error('O link da planilha requer login ou não está público.');
+      }
+      wb = XLSX.read(text, { type: 'string', raw: true });
+    } else {
+      const res = await fetch(SHAREPOINT_URL_CHAMADOS);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const buffer = await res.arrayBuffer();
+      wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+    }
 
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
     if (!rows || rows.length === 0) throw new Error('Planilha sem dados válidos.');
+    
     processRows(rows, currentTab === 'situacao' ? 'Situação Planilha' : 'Gestão Chamados');
   } catch(e) {
-    showStatus('error', `✗ Erro ao sincronizar dados: ${e.message}. Verifique a permissão pública do link.`);
+    showStatus('error', `✗ Erro de sincronização: ${e.message}. Se o erro persistir na aba Chamados, pode ser bloqueio de segurança (CORS) do SharePoint.`);
   } finally {
     btn.disabled = false;
-    label.textContent = 'Atualizar do Google Sheets';
+    label.textContent = 'Atualizar da Nuvem';
   }
 }
 
@@ -319,12 +321,12 @@ const COL_MAP_SITUACAO = {
   dataFim: ['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO'],
   fab: ['FABRICANTE','MARCA'],
   tipo: ['TIPO_CORRECAO','TIPO CORREÇÃO'],
-  inop: ['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERÂNCIA'],
+  inop: ['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERÂNCIA','PERCENTUAL INOPERANCIA'],
   dias: ['TEMPO_INOPERANTE','DIAS','DOWNTIME_DIAS']
 };
 
 const COL_MAP_CHAMADOS = {
-  id: ['CHAMADO','ID_CHAMADO','TICKET'],
+  id: ['CHAMADO','ID_CHAMADO','TICKET','ID'],
   usina: ['USINA','PLANTA'],
   inv: ['INVERSOR','EQUIPAMENTO'],
   dataOc: ['DATA_ABERTURA','DATA ABERTURA','ABERTURA'],
@@ -340,9 +342,26 @@ function findCol(headers, key, mapEscolha) {
   const map = mapEscolha[key] || [];
   for (const h of headers) {
     const hu = h.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (map.some(c => hu === c.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || hu.includes(c))) return h;
+    if (map.some(c => hu === c.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))) return h;
+  }
+  for (const h of headers) {
+    const hu = h.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (map.some(c => {
+       const cu = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+       return new RegExp(`\\b${cu}\\b`).test(hu);
+    })) return h;
   }
   return null;
+}
+
+function parseDate(val){
+  if(!val)return null;
+  if(val instanceof Date)return val.toISOString().slice(0,10);
+  if(typeof val==='number')return new Date(Math.round((val-25569)*86400*1000)).toISOString().slice(0,10);
+  const s=val.toString().trim();
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+  return s.length>=10?s.slice(0,10):null;
 }
 
 function processRows(rows, source) {
@@ -353,18 +372,24 @@ function processRows(rows, source) {
 
   DATA = rows.map((r, i) => {
     const get = k => cols[k] ? (r[cols[k]] !== undefined ? r[cols[k]].toString().trim() : '') : '';
+    let inopVal = get('inop');
+    let parsedInop = 0;
+    if(inopVal) {
+      let n = parseFloat(inopVal.replace(',', '.').replace('%', ''));
+      if(!isNaN(n)) parsedInop = n > 1 ? n / 100 : n;
+    }
     return {
       id: get('id') || `FT-${String(i+1).padStart(3,'0')}`,
       usina: get('usina') || 'Não Informado',
       inv: get('inv') || '—',
-      dataOc: get('dataOc') || '—',
+      dataOc: parseDate(get('dataOc')) || get('dataOc') || '—',
       causa: get('causa') || 'Não Informado',
       medida: get('medida') || '—',
       status: get('status') || 'Aberto',
-      dataFim: get('dataFim') || '—',
+      dataFim: parseDate(get('dataFim')) || get('dataFim') || '—',
       fab: currentTab === 'situacao' ? (get('fab') || 'Não Informado') : 'N/A',
       tipo: get('tipo') || 'Corretiva',
-      inop: currentTab === 'situacao' ? (parseFloat(get('inop')) || 0) : 0,
+      inop: currentTab === 'situacao' ? parsedInop : 0,
       dias: Math.round(parseFloat(get('dias'))) || 0
     };
   }).filter(r => r.usina !== 'Não Informado');
@@ -376,7 +401,6 @@ function processRows(rows, source) {
   document.getElementById('empty-screen').style.display = 'none';
   document.getElementById('dashboard-screen').style.display = 'block';
   
-  // Ajustes de tela condicional por aba
   if (currentTab === 'chamados') {
     document.getElementById('filter-fab-row').style.display = 'none';
     document.getElementById('extra-charts-row').style.display = 'none';
@@ -394,7 +418,7 @@ function processRows(rows, source) {
   }
 
   document.getElementById('topbar-sub').textContent = `${DATA.length} registros mapeados · ${usinas.length} usinas ativas · Base Sincronizada`;
-  showStatus('ok', `✓ ${DATA.length} registros processados com sucesso.`);
+  showStatus('ok', `✓ ${DATA.length} registros processados via ${source}.`);
   updatePublishBtn();
   buildTableHeader();
   render();
@@ -426,15 +450,15 @@ function renderTable(data) {
   empty.style.display = 'none';
 
   tbody.innerHTML = slice.map(r => {
-    const badge = r.status.toLowerCase().includes('conclu') || r.status.toLowerCase().includes('fechad')
-      ? '<span class="badge badge-green">✓ Finalizado</span>'
-      : '<span class="badge badge-red">● Ativo</span>';
+    const statusText = r.status.toLowerCase();
+    const isDone = statusText.includes('conclu') || statusText.includes('fechad') || statusText.includes('resolvid');
+    const badge = isDone ? '<span class="badge badge-green">✓ Finalizado</span>' : '<span class="badge badge-red">● Ativo</span>';
     
     if (currentTab === 'situacao') {
       const cls = r.dias >= 25 ? 'row-high' : r.dias >= 15 ? 'row-med' : '';
-      return `<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td>${r.usina}</td><td>${r.inv}</td><td>${r.dataOc}</td><td>${r.causa}</td><td>${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td>${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
+      return `<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td>${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
     } else {
-      return `<tr><td><span class="id-chip">${r.id}</span></td><td>${r.usina}</td><td>${r.inv}</td><td>${r.dataOc}</td><td>${r.causa}</td><td>${r.medida}</td><td>${r.dias}d</td><td>${badge}</td><td>${r.tipo}</td></tr>`;
+      return `<tr><td><span class="id-chip">${r.id}</span></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td>${r.dias}d</td><td>${badge}</td><td>${r.tipo}</td></tr>`;
     }
   }).join('');
   
@@ -455,26 +479,62 @@ function filtered(){
 function setFilter(k,v){ filters[k]=v; page=0; render(); }
 function changePage(d){ const data=filtered(); page=Math.max(0,Math.min(Math.ceil(data.length/PAGE_SIZE)-1,page+d)); renderTable(data); }
 
+function renderPills(id,vals,key){
+  document.getElementById(id).innerHTML=vals.map(v=>`<button class="pill${filters[key]===v?' active':''}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`).join('');
+}
+
 function renderKPIs(data) {
   const total = data.length;
-  const abertos = data.filter(r => !r.status.toLowerCase().includes('conclu') && !r.status.toLowerCase().includes('fechad')).length;
+  const abertos = data.filter(r => {
+    const s = r.status.toLowerCase();
+    return !s.includes('conclu') && !s.includes('fechad') && !s.includes('resolv');
+  }).length;
   const concluidores = total - abertos;
   
   if (currentTab === 'situacao') {
     const dias = data.reduce((s, r) => s + r.dias, 0);
     const mttr = total > 0 ? (dias / total).toFixed(1) : 0;
     document.getElementById('kpi-row').innerHTML = `
-      <div class="kpi blue"><div class="kpi-label">Ocorrências Totais</div><div class="kpi-value">${total}</div></div>
-      <div class="kpi amber"><div class="kpi-label">Indisponibilidade Acumulada</div><div class="kpi-value">${dias}d</div></div>
-      <div class="kpi red"><div class="kpi-label">MTTR Médio</div><div class="kpi-value">${mttr}d</div></div>
-      <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${concluidores}</div></div>`;
+      <div class="kpi blue"><div class="kpi-label">Ocorrências Totais</div><div class="kpi-value">${total}</div><div class="kpi-meta">Eventos atrelados</div></div>
+      <div class="kpi amber"><div class="kpi-label">Tempo Inoperante</div><div class="kpi-value">${dias}</div><div class="kpi-meta">Dias acumulados</div></div>
+      <div class="kpi red"><div class="kpi-label">MTTR Médio</div><div class="kpi-value">${mttr}</div><div class="kpi-meta">Dias para resolução</div></div>
+      <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${concluidores}</div><div class="kpi-meta">${abertos} pendências</div></div>`;
   } else {
     document.getElementById('kpi-row').innerHTML = `
-      <div class="kpi blue"><div class="kpi-label">Total Chamados</div><div class="kpi-value">${total}</div></div>
-      <div class="kpi red"><div class="kpi-label">Chamados em Aberto</div><div class="kpi-value">${abertos}</div></div>
-      <div class="kpi green"><div class="kpi-label">Chamados Fechados</div><div class="kpi-value">${concluidores}</div></div>
-      <div class="kpi amber"><div class="kpi-label">Eficiência de Resolução</div><div class="kpi-value">${total > 0 ? Math.round((concluidores/total)*100) : 0}%</div></div>`;
+      <div class="kpi blue"><div class="kpi-label">Total Chamados</div><div class="kpi-value">${total}</div><div class="kpi-meta">Abertos no sistema</div></div>
+      <div class="kpi red"><div class="kpi-label">Em Execução</div><div class="kpi-value">${abertos}</div><div class="kpi-meta">Esperando tratativa</div></div>
+      <div class="kpi green"><div class="kpi-label">Chamados Fechados</div><div class="kpi-value">${concluidores}</div><div class="kpi-meta">Status concluído</div></div>
+      <div class="kpi amber"><div class="kpi-label">Eficiência (SLA)</div><div class="kpi-value">${total > 0 ? Math.round((concluidores/total)*100) : 0}%</div><div class="kpi-meta">Taxa de resolução</div></div>`;
   }
+}
+
+function renderBarChart(id,data,groupKey,colorFn){
+  const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?sorted[0][1]:1;
+  const el=document.getElementById(id);
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3)">Sem registros</div>';return;}
+  el.innerHTML=sorted.map(([label,n])=>{
+    const pct=Math.round((n/max)*100);
+    return`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(label)}">${n}</div></div></div>`;
+  }).join('');
+}
+
+function renderMTTR(data){
+  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
+  const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);
+  const max=rows[0]?rows[0][1]:1;
+  document.getElementById('chart-mttr').innerHTML=rows.length?rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((avg/max)*100)}%;background:${USINA_COLORS[u]}">${avg.toFixed(1)}d</div></div></div>`).join(''):'';
+}
+
+function renderTipo(data){
+  const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
+  const total=data.length;
+  document.getElementById('chart-tipo').innerHTML=`<div style="padding:10px; font-size:13px">${Object.entries(counts).map(([k,v])=>`<div style="margin-bottom:6px"><strong>${k}:</strong> ${v} eventos (${((v/total)*100).toFixed(0)}%)</div>`).join('')}</div>`;
+}
+
+function renderGantt(data){
+  document.getElementById('gantt-chart').innerHTML='<div style="color:var(--text3); font-size:12px; padding:10px;">Linha do tempo disponível na visualização O&M nativa.</div>';
 }
 
 function render(){
@@ -493,38 +553,17 @@ function render(){
   renderTable(data);
 }
 
-function uniq(arr,k){return['Todos',...new Set(arr.map(r=>r[k]))];}
-function renderBarChart(id,data,groupKey,colorFn){
-  const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const max=sorted[0]?sorted[0][1]:1;
-  const el=document.getElementById(id);
-  if(!sorted.length){el.innerHTML='<div style="color:var(--text3)">Sem registros</div>';return;}
-  el.innerHTML=sorted.map(([label,n])=>{
-    const pct=Math.round((n/max)*100);
-    return`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(label)}">${n}</div></div></div>`;
-  }).join('');
-}
-function renderMTTR(data){
-  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
-  const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);
-  const max=rows[0]?rows[0][1]:1;
-  document.getElementById('chart-mttr').innerHTML=rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((avg/max)*100)}%;background:${USINA_COLORS[u]}">${avg.toFixed(1)}d</div></div></div>`).join('');
-}
-function renderTipo(data){
-  const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
-  const total=data.length;
-  document.getElementById('chart-tipo').innerHTML=`<div style="padding:10px; font-size:13px">${Object.entries(counts).map(([k,v])=>`<div><strong>${k}:</strong> ${v} eventos (${((v/total)*100).toFixed(0)}%)</div>`).join('')}</div>`;
-}
-function renderGantt(data){
-  document.getElementById('gantt-chart').innerHTML='<div style="color:var(--text3); font-size:12px; padding:10px;">Linha do tempo disponível na aba de Situação Geral.</div>';
-}
-function showStatus(type,msg){
-  const el=document.getElementById('status-msg'); el.style.display='block';
-  el.innerHTML=`<div style="padding:10px; background:rgba(63,185,80,.1); border:1px solid rgba(63,185,80,.3); border-radius:6px; font-size:12px; color:#3fb950">${msg}</div>`;
-  setTimeout(()=>{el.style.display='none';},4000);
-}
-function loadConfig(){} function updatePublishBtn(){} openPublishModal(){} openConfigModal(){} closeConfigModal(){} closePublishModal(){} saveConfig(){} publishToGitHub(){} exportCSV(){}
+function loadConfig(){ try{ const s=localStorage.getItem('om_gh_config'); if(s) Object.assign(GH,JSON.parse(s)); }catch(e){} updateTokenIndicator(); }
+function saveConfig(){ const t=document.getElementById('cfg-token').value.trim(); if(!t)return; GH.token=t; localStorage.setItem('om_gh_config',JSON.stringify(GH)); closeConfigModal(); updateTokenIndicator(); updatePublishBtn(); showStatus('ok','Token salvo.'); }
+function updateTokenIndicator(){ document.getElementById('tok-indicator').innerHTML = GH.token ? '<span class="dot dot-ok"></span>Token' : '<span class="dot dot-no"></span>Token'; }
+function updatePublishBtn(){ document.getElementById('btn-publish').disabled=!(DATA.length>0 && GH.token); }
+function openConfigModal(){ loadConfig(); document.getElementById('cfg-token').value=GH.token; document.getElementById('modal-config').style.display='flex'; }
+function closeConfigModal(){ document.getElementById('modal-config').style.display='none'; }
+function openPublishModal(){ document.getElementById('modal-publish').style.display='flex'; }
+function closePublishModal(){ document.getElementById('modal-publish').style.display='none'; }
+function publishToGitHub(){ alert("Configure a rotina de commit estático."); }
+
+document.addEventListener('DOMContentLoaded', loadConfig);
 </script>
 </body>
 </html>
