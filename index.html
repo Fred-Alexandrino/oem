@@ -34,36 +34,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .nav-item.active{background:var(--blue-bg);color:var(--blue)}
 .sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-
-/* ── Topbar ── */
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
 .topbar-left h1{font-size:15px;font-weight:600;color:var(--text)}
 .topbar-left p{font-size:11px;color:var(--text3);margin-top:1px}
 .topbar-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .btn-sep{width:1px;height:26px;background:var(--border2);margin:0 2px}
-
-/* Botões */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
 .btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
 .btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
 .btn:disabled{opacity:.38;cursor:not-allowed}
-
-/* SHEETS — verde teal */
 .btn-sheets{background:#0f3d2e;border-color:#34a853;color:#34a853;font-size:13px;padding:8px 16px}
 .btn-sheets:hover:not(:disabled){background:#145235;color:#46c467;border-color:#46c467}
 .btn-sheets:disabled{opacity:.4}
-/* CARREGAR — azul */
 .btn-load{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);font-size:13px;padding:8px 16px}
 .btn-load:hover:not(:disabled){background:#1a4a8c}
-/* PUBLICAR — verde */
 .btn-publish{background:var(--green-bg);border-color:var(--green);color:var(--green);font-size:13px;padding:8px 16px}
 .btn-publish:hover:not(:disabled){background:#0d3a1a}
 .btn-publish:disabled{opacity:.38}
-
-/* Indicator dots */
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
 .dot-ok{background:var(--green)}.dot-no{background:var(--text3)}.dot-spin{background:var(--amber)}
-
 .content{padding:22px 24px;flex:1}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
@@ -73,9 +62,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .kpi-value{font-size:26px;font-weight:700;line-height:1;margin-bottom:5px}
 .kpi.blue .kpi-value{color:var(--blue)}.kpi.green .kpi-value{color:var(--green)}.kpi.amber .kpi-value{color:var(--amber)}.kpi.red .kpi-value{color:var(--red)}
 .kpi-meta{font-size:11px;color:var(--text3)}
-.filter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.filter-group-label{font-size:11px;color:var(--text3);white-space:nowrap}
+.filter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;display:flex;flex-direction:column;gap:14px}
+.filter-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-group-label{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;text-transform:uppercase;width:80px}
 .pill{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
 .pill:hover{background:var(--bg3);color:var(--text)}.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
@@ -123,8 +112,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 .legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
 .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .legend-val{font-weight:600;color:var(--text);margin-left:auto;padding-left:10px}
-
-/* ── Modais ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:480px;max-width:92vw;overflow:hidden}
 .modal-header{padding:20px 22px 16px;border-bottom:1px solid var(--border)}
@@ -148,8 +135,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 .pub-info{background:rgba(56,139,253,.1);border-color:rgba(56,139,253,.3);color:var(--blue)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-
-/* status bar */
 #status-msg{margin-bottom:14px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -160,7 +145,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 <body>
 <div class="shell">
 
-<!-- Sidebar -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
@@ -180,7 +164,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
 <div class="main">
 
-  <!-- ── TOPBAR ── -->
   <header class="topbar">
     <div class="topbar-left">
       <h1>Histórico de Falhas — Inversores</h1>
@@ -188,7 +171,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
     </div>
     <div class="topbar-actions">
 
-      <!-- ① ATUALIZAR DO GOOGLE SHEETS — principal -->
       <button class="btn btn-sheets" id="btn-sheets" onclick="loadFromSheets()">
         <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
         <span id="sheets-btn-label">Atualizar do Google Sheets</span>
@@ -196,7 +178,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
       <div class="btn-sep"></div>
 
-      <!-- ② CARREGAR ARQUIVO LOCAL -->
       <button class="btn btn-load" onclick="document.getElementById('file-input').click()" title="Carregar arquivo .xlsx ou .csv local">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Carregar Planilha
@@ -204,7 +185,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
       <div class="btn-sep"></div>
 
-      <!-- ③ PUBLICAR NO GITHUB -->
       <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled title="Carregue os dados primeiro">
         <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
         Publicar no GitHub
@@ -212,13 +192,11 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
       <div class="btn-sep"></div>
 
-      <!-- Exportar CSV -->
       <button class="btn" id="btn-export" onclick="exportCSV()" disabled title="Exportar dados filtrados">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         CSV
       </button>
 
-      <!-- Config token -->
       <button class="btn" onclick="openConfigModal()" id="btn-cfg" title="Configurar token do GitHub">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         <span id="tok-indicator"><span class="dot dot-no"></span>Token</span>
@@ -231,7 +209,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
   <div class="content">
     <div id="status-msg" style="display:none"></div>
 
-    <!-- Empty state -->
     <div id="empty-screen" class="empty-big">
       <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
       <h2>Dashboard O&M — Inversores Solares</h2>
@@ -243,15 +220,25 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
       <p style="font-size:12px;color:var(--text3)">ou arraste um arquivo .xlsx para esta área</p>
     </div>
 
-    <!-- Dashboard -->
     <div id="dashboard-screen" style="display:none">
       <div id="alert-box" style="display:none"></div>
       <div class="kpi-row" id="kpi-row"></div>
+      
       <div class="filter-bar">
-        <div class="filter-group"><span class="filter-group-label">Usina</span><div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
-        <div class="filter-group"><span class="filter-group-label">Fabricante</span><div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
-        <div class="filter-group"><span class="filter-group-label">Status</span><div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group">
+          <span class="filter-group-label">Usina</span>
+          <div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">Fabricante</span>
+          <div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">Status</span>
+          <div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
       </div>
+
       <div class="charts-row">
         <div class="chart-card"><div class="chart-card-title">Causas de falha</div><div id="chart-causas"></div></div>
         <div class="chart-card"><div class="chart-card-title">Falhas por usina</div><div id="chart-usinas"></div></div>
@@ -296,7 +283,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 </div>
 </div>
 
-<!-- ══ MODAL Token GitHub ══ -->
 <div class="modal-overlay" id="modal-config" style="display:none" onclick="if(event.target===this)closeConfigModal()">
   <div class="modal">
     <div class="modal-header">
@@ -329,7 +315,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
   </div>
 </div>
 
-<!-- ══ MODAL Publicar ══ -->
 <div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
   <div class="modal">
     <div class="modal-header">
@@ -358,9 +343,6 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 </div>
 
 <script>
-// ═══════════════════════════════════════
-// GOOGLE SHEETS — URL fixa da planilha base
-// ═══════════════════════════════════════
 const SHEETS_ID  = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
 const SHEETS_GID = '1539484372';
 const SHEETS_CSV = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=csv&gid=${SHEETS_GID}`;
@@ -377,7 +359,6 @@ async function loadFromSheets() {
     const text = await res.text();
     if (!text || text.trim().length < 10) throw new Error('Planilha vazia ou sem dados');
 
-    // parse CSV
     const lines = text.split('\n').filter(l => l.trim());
     const parseCSVLine = line => {
       const r=[], re=/("(?:[^"]|"")*"|[^,]*),?/g; let m;
@@ -400,9 +381,6 @@ async function loadFromSheets() {
   }
 }
 
-// ═══════════════════════════════════════
-// Config GitHub
-// ═══════════════════════════════════════
 const GH = { user:'Fred-Alexandrino', repo:'oem', file:'index.html', token:'' };
 
 function loadConfig(){
@@ -430,9 +408,6 @@ function updatePublishBtn(){
 function openConfigModal(){ loadConfig(); document.getElementById('cfg-token').value=GH.token; document.getElementById('modal-config').style.display='flex'; }
 function closeConfigModal(){ document.getElementById('modal-config').style.display='none'; }
 
-// ═══════════════════════════════════════
-// Publicar no GitHub
-// ═══════════════════════════════════════
 let currentSHA='';
 
 async function openPublishModal(){
@@ -506,9 +481,6 @@ function buildHTML(){
   return src.replace('</body>', inject+'</body>');
 }
 
-// ═══════════════════════════════════════
-// Dados & parsing
-// ═══════════════════════════════════════
 const PAGE_SIZE=10;
 let DATA=[], page=0;
 let filters={usina:'Todos',fab:'Todos',status:'Todos'};
@@ -516,24 +488,32 @@ const PALETTE=['#388bfd','#d29922','#3fb950','#a371f7','#f85149','#39d353','#58a
 const USINA_COLORS={};
 
 const COL_MAP={
-  id:      ['ID_FALHA','ID FALHA','ID'],
-  usina:   ['USINA','PLANTA'],
-  inv:     ['INVERSOR','INV'],
-  dataOc:  ['DATA_OCORRENCIA','DATA OCORRENCIA','DATA_OCORRÊNCIA','DATA OCORRÊNCIA'],
-  causa:   ['CAUSA_PROVAVEL','CAUSA PROVAVEL','CAUSA_PROVÁVEL','CAUSA'],
-  medida:  ['MEDIDA_ADOTADA','MEDIDA ADOTADA','MEDIDA'],
-  status:  ['STATUS_FINAL','STATUS FINAL','STATUS'],
-  dataFim: ['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO','DATA CONCLUSÃO'],
-  fab:     ['FABRICANTE','MARCA'],
-  tipo:    ['TIPO_CORRECAO','TIPO CORRECAO','TIPO_CORREÇÃO','TIPO'],
-  inop:    ['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERANCIA','PERC_INOP','INOPERANCIA'],
-  dias:    ['TEMPO_INOPERANTE','TEMPO INOPERANTE','DIAS','DOWNTIME_DIAS'],
+  id:['ID_FALHA','ID FALHA','ID'],
+  usina:['USINA','PLANTA'],
+  inv:['INVERSOR','INV'],
+  dataOc:['DATA_OCORRENCIA','DATA OCORRENCIA','DATA_OCORRÊNCIA','DATA OCORRÊNCIA'],
+  causa:['CAUSA_PROVAVEL','CAUSA PROVAVEL','CAUSA_PROVÁVEL','CAUSA'],
+  medida:['MEDIDA_ADOTADA','MEDIDA ADOTADA','MEDIDA'],
+  status:['STATUS_FINAL','STATUS FINAL','STATUS'],
+  dataFim:['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO','DATA CONCLUSÃO'],
+  fab:['FABRICANTE','MARCA'],
+  tipo:['TIPO_CORRECAO','TIPO CORRECAO','TIPO_CORREÇÃO','TIPO'],
+  inop:['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERANCIA','PERC_INOP','INOPERANCIA'],
+  dias:['TEMPO_INOPERANTE','TEMPO INOPERANTE','DIAS','DOWNTIME_DIAS']
 };
 
 function findCol(headers,key){
-  for(const h of headers){ const hu=h.toString().toUpperCase().trim(); if((COL_MAP[key]||[]).some(c=>hu===c||hu.includes(c))) return h; }
+  for(const h of headers){
+    const hu=h.toString().toUpperCase().trim();
+    if((COL_MAP[key]||[]).some(c=>hu===c)) return h;
+  }
+  for(const h of headers){
+    const hu=h.toString().toUpperCase().trim();
+    if((COL_MAP[key]||[]).some(c=>hu.includes(c) && !hu.includes('DATA'))) return h;
+  }
   return null;
 }
+
 function parseDate(val){
   if(!val)return null;
   if(val instanceof Date)return val.toISOString().slice(0,10);
@@ -630,9 +610,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.body.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f],value:''}});});
 });
 
-// ═══════════════════════════════════════
-// Render
-// ═══════════════════════════════════════
 function uniq(arr,k){return['Todos',...new Set(arr.map(r=>r[k]))];}
 function filtered(){return DATA.filter(r=>{
   if(filters.usina!=='Todos'&&r.usina!==filters.usina)return false;
