@@ -357,15 +357,16 @@ async function loadFromSheets() {
     const res = await fetch(SHEETS_CSV);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
-    // CORREÇÃO CRÍTICA: Substituição do interpretador CSV.
-    // Usamos o SheetJS (XLSX) que já está carregado para ler o arquivo nativamente.
-    // Isso evita o erro de alinhamento de colunas (que gerava datas no fabricante)
-    // causado por vírgulas soltas ou quebras de linha dentro das próprias células do Excel.
-    const arrayBuffer = await res.arrayBuffer();
-    const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: false });
+    // Lê o conteúdo como texto via fetch (isso garante que o navegador converta corretamente o UTF-8)
+    const text = await res.text();
+    
+    if (!text || text.trim().length < 10) throw new Error('Planilha vazia ou sem dados');
+
+    // Analisa o texto convertido em UTF-8 com o XLSX em modo string em vez de modo binário (array)
+    const wb = XLSX.read(text, { type: 'string', cellDates: false });
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: true, defval: '' });
 
-    if (!rows || rows.length === 0) throw new Error('Planilha vazia ou sem dados');
+    if (!rows || rows.length === 0) throw new Error('Falha ao interpretar dados');
 
     processRows(rows, 'Google Sheets');
   } catch(e) {
@@ -499,20 +500,14 @@ const COL_MAP={
 
 function findCol(headers, key) {
   const map = COL_MAP[key] || [];
-  
-  // 1. Busca por correspondência exata para evitar capturas cruzadas
   for (const h of headers) {
     const hu = h.toString().toUpperCase().trim();
     if (map.some(c => hu === c)) return h;
   }
-  
-  // 2. Busca por palavra inteira apenas (Regex de limite de palavra)
-  // Isso evita que algo como "MARCAÇÃO" englobe "MARCA"
   for (const h of headers) {
     const hu = h.toString().toUpperCase().trim();
     if (map.some(c => new RegExp(`\\b${c}\\b`).test(hu))) return h;
   }
-  
   return null;
 }
 
@@ -536,17 +531,25 @@ function parseInop(val){
 
 function handleFile(evt){
   const file=evt.target.files[0]; if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      // Delegação total ao SheetJS (XLSX) também para arquivos CSV locais.
-      const wb = XLSX.read(e.target.result, {type: 'array', cellDates: false});
+      let wb;
+      if(ext === 'csv') {
+        wb = XLSX.read(e.target.result, { type: 'string', cellDates: false });
+      } else {
+        wb = XLSX.read(e.target.result, { type: 'array', cellDates: false });
+      }
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw: true, defval: ''});
       processRows(rows, file.name);
     }catch(err){showStatus('error','Erro: '+err.message);}
   };
-  // Lemos em ArrayBuffer em vez de Text para que o parser seja consistente
-  reader.readAsArrayBuffer(file);
+  
+  // Utiliza readAsText para manter formatação nativa UTF-8 em arquivos CSV
+  if(ext === 'csv') reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
+  
   evt.target.value='';
 }
 
