@@ -8,7 +8,662 @@
 <style>
 :root{
   --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;--bg4:#21262d;
+  --border:rgba(255,255,255,0.08);--<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard O&M — Inversores Solares</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;--bg4:#21262d;
   --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.13);
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --blue:#388bfd;--blue-dim:#1f4073;--blue-bg:#0d2241;
+  --green:#3fb950;--green-bg:#0d2818;
+  --amber:#d29922;--amber-bg:#2d1f00;
+  --red:#f85149;--red-bg:#300d0d;
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:var(--blue-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:15px;height:15px;stroke:var(--blue);stroke-width:2;fill:none}
+.logo-name{font-size:13px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--text3)}
+.sidebar-nav{padding:10px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:2px;transition:background .15s,color .15s}
+.nav-item svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue);font-weight:500}
+.sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.topbar-left h1{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-left p{font-size:11px;color:var(--text3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn-sep{width:1px;height:26px;background:var(--border2);margin:0 2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
+.btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn-sheets{background:#0f3d2e;border-color:#34a853;color:#34a853;font-size:13px;padding:8px 16px}
+.btn-sheets:hover:not(:disabled){background:#145235;color:#46c467;border-color:#46c467}
+.btn-publish{background:var(--green-bg);border-color:var(--green);color:var(--green);font-size:13px;padding:8px 16px}
+.btn-publish:hover:not(:disabled){background:#0d3a1a}
+.btn-publish:disabled{opacity:.38}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+.dot-ok{background:var(--green)}.dot-no{background:var(--text3)}.dot-spin{background:var(--amber)}
+.content{padding:22px 24px;flex:1}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.blue::before{background:var(--blue)}.kpi.green::before{background:var(--green)}.kpi.amber::before{background:var(--amber)}.kpi.red::before{background:var(--red)}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:700;line-height:1;margin-bottom:5px}
+.kpi.blue .kpi-value{color:var(--blue)}.kpi.green .kpi-value{color:var(--green)}.kpi.amber .kpi-value{color:var(--amber)}.kpi.red .kpi-value{color:var(--red)}
+.kpi-meta{font-size:11px;color:var(--text3)}
+.filter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;display:flex;flex-direction:column;gap:14px}
+.filter-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-group-label{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;text-transform:uppercase;width:80px}
+.pill{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.pill:hover{background:var(--bg3);color:var(--text)}.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.chart-card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-lbl{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:17px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:11px;font-weight:600;color:#fff;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bar-count{font-size:11px;color:var(--text3);min-width:18px;text-align:right}
+.gantt-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px}
+.gantt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.gantt-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.gantt-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.gantt-lbl{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gantt-track{flex:1;height:19px;background:var(--bg4);border-radius:4px;position:relative;overflow:hidden}
+.gantt-bar{position:absolute;height:100%;border-radius:3px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden}
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.table-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.table-count{font-size:12px;color:var(--text3)}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+tr:last-child td{border-bottom:none}
+tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,153,34,.05)}tr:hover td{background:var(--bg3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}.badge-red{background:var(--red-bg);color:var(--red)}.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.id-chip{font-family:monospace;font-size:12px;color:var(--blue);font-weight:600}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
+.pager-btns{display:flex;gap:5px}
+.pager-btn{padding:3px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.pager-btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}.pager-btn:disabled{opacity:.3;cursor:default}
+.empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;text-align:center;gap:16px}
+.empty-big svg{width:52px;height:52px;stroke:var(--text3);stroke-width:1.2;fill:none}
+.empty-big h2{font-size:18px;font-weight:600;color:var(--text)}
+.empty-big p{font-size:13px;color:var(--text3);max-width:360px;line-height:1.6}
+.empty-state{padding:36px;text-align:center;color:var(--text3);font-size:13px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:480px;max-width:92vw;overflow:hidden}
+.modal-header{padding:20px 22px 16px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--text3);line-height:1.6}
+.modal-body{padding:20px 22px}
+.modal-footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--blue)}
+.spinner{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+#status-msg{margin-bottom:14px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+@media(max-width:860px){.sidebar{display:none}.kpi-row{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}.content{padding:14px}.topbar{padding:10px 14px}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+    <div><div class="logo-name">SolarOps</div><div class="logo-sub">GridCo O&M</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Monitoramento</div>
+    <div class="nav-item active" id="nav-situacao" onclick="switchTab('situacao')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Situação Inversores
+    </div>
+    <div class="nav-item" id="nav-chamados" onclick="switchTab('chamados')">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Chamados Inversores
+    </div>
+  </nav>
+  <div class="sidebar-footer" id="sidebar-footer">Aguardando dados</div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbar-title">Situação Geral — Inversores</h1>
+      <p id="topbar-sub">Nenhum dado carregado</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-sheets" id="btn-sheets" onclick="loadCurrentTabSheets()">
+        <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        <span id="sheets-btn-label">Atualizar da Nuvem</span>
+      </button>
+      <div class="btn-sep"></div>
+      <button class="btn btn-load" onclick="document.getElementById('file-input').click()" title="Carregar arquivo local via upload manual">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Carregar Planilha
+      </button>
+      <div class="btn-sep"></div>
+      <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        Publicar no GitHub
+      </button>
+      <div class="btn-sep"></div>
+      <button class="btn" id="btn-export" onclick="exportCSV()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+      <button class="btn" onclick="openConfigModal()" id="btn-cfg">
+        <span id="tok-indicator"><span class="dot dot-no"></span>Token</span>
+      </button>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="display:none">
+    </div>
+  </header>
+
+  <div class="content">
+    <div id="status-msg" style="display:none"></div>
+
+    <div id="empty-screen" class="empty-big">
+      <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/></svg>
+      <h2>Dashboard de Operação & Manutenção</h2>
+      <p>Selecione uma aba ao lado e clique em atualizar para sincronizar as planilhas da GridCo.</p>
+    </div>
+
+    <div id="dashboard-screen" style="display:none">
+      <div class="kpi-row" id="kpi-row"></div>
+      
+      <div class="filter-bar">
+        <div class="filter-group"><span class="filter-group-label">Usina</span><div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group" id="filter-fab-row"><span class="filter-group-label">Fabricante</span><div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Status</span><div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-card-title" id="title-chart-causas">Causas de falha</div><div id="chart-causas"></div></div>
+        <div class="chart-card"><div class="chart-card-title" id="title-chart-usinas">Eventos por usina</div><div id="chart-usinas"></div></div>
+      </div>
+      <div class="charts-row" id="extra-charts-row">
+        <div class="chart-card"><div class="chart-card-title">MTTR por usina (dias)</div><div id="chart-mttr"></div></div>
+        <div class="chart-card"><div class="chart-card-title">Tipo de correção</div><div id="chart-tipo"></div></div>
+      </div>
+      <div class="gantt-card" id="gantt-card-row">
+        <div class="gantt-header"><div class="gantt-title">Linha do tempo de inoperância</div><span id="gantt-range"></span></div>
+        <div id="gantt-chart"></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title" id="table-title-lbl">Detalhes operacionais</span><span class="table-count" id="table-count"></span></div>
+        <div style="overflow-x:auto">
+          <table id="main-table">
+            <thead id="table-thead"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" style="display:none">Nenhum registro para os filtros selecionados.</div>
+        <div class="pager">
+          <span id="pager-info"></span>
+          <div class="pager-btns">
+            <button class="pager-btn" id="btn-prev" onclick="changePage(-1)">← Anterior</button>
+            <button class="pager-btn" id="btn-next" onclick="changePage(1)">Próximo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-config" style="display:none" onclick="if(event.target===this)closeConfigModal()">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔑 Configurar Token do GitHub</div></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Personal Access Token (PAT)</label>
+        <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConfigModal()">Cancelar</button>
+      <button class="btn btn-load" onclick="saveConfig()">Salvar token</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Publicar no GitHub Pages</div></div>
+    <div class="modal-body">
+      <div id="pub-status-box" style="display:none; padding:10px; font-size:12px; border-radius:6px; margin-bottom:12px"></div>
+      <div id="pub-info">Link: <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank" style="color:var(--blue)">Fred-Alexandrino.github.io/oem/</a></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closePublishModal()" id="pub-cancel-btn">Cancelar</button>
+      <button class="btn btn-publish" onclick="publishToGitHub()" id="pub-confirm-btn">Publicar agora</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTab = 'situacao';
+const SHEETS_ID_BASE = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
+const SHEETS_GID_BASE = '1539484372';
+
+// Link direto de download da planilha do SharePoint
+const SHAREPOINT_URL_CHAMADOS = 'https://gridcobr.sharepoint.com/:x:/s/GRIDCO/IQB64AH7qFdbT7z3bz2Sc_kzAWcF0so1GpYHFa6Ch4QILBY?download=1';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('nav-situacao').className = tab === 'situacao' ? 'nav-item active' : 'nav-item';
+  document.getElementById('nav-chamados').className = tab === 'chamados' ? 'nav-item active' : 'nav-item';
+  document.getElementById('topbar-title').textContent = tab === 'situacao' ? 'Situação Geral — Inversores' : 'Gestão de Chamados — Inversores';
+  
+  document.getElementById('dashboard-screen').style.display = 'none';
+  document.getElementById('empty-screen').style.display = 'flex';
+  document.getElementById('btn-export').disabled = true;
+}
+
+function showStatus(type,msg){
+  const el=document.getElementById('status-msg');
+  el.style.display='block';
+  const c=type==='ok'?{bg:'rgba(63,185,80,.1)',b:'rgba(63,185,80,.3)',t:'#3fb950'}
+          :type==='error'?{bg:'rgba(248,81,73,.1)',b:'rgba(248,81,73,.3)',t:'#f85149'}
+          :{bg:'rgba(210,153,34,.1)',b:'rgba(210,153,34,.3)',t:'#d29922'};
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:${c.bg};border:1px solid ${c.b};border-radius:6px;font-size:12px;color:${c.t}">${msg}</div>`;
+  if(type==='ok')setTimeout(()=>{el.style.display='none';},6000);
+}
+
+async function loadCurrentTabSheets() {
+  const btn = document.getElementById('btn-sheets');
+  const label = document.getElementById('sheets-btn-label');
+  btn.disabled = true;
+  label.innerHTML = '<span class="spinner" style="display:inline-block"></span> Carregando...';
+
+  try {
+    let wb;
+    if (currentTab === 'situacao') {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_BASE}/export?format=csv&gid=${SHEETS_GID_BASE}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buffer = await res.arrayBuffer();
+      const text = new TextDecoder('utf-8').decode(buffer);
+      if (text.trim().startsWith('<!DOCTYPE html>')) throw new Error('Acesso negado na planilha pública base.');
+      wb = XLSX.read(text, { type: 'string', raw: true });
+    } else {
+      const res = await fetch(SHAREPOINT_URL_CHAMADOS);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buffer = await res.arrayBuffer();
+      wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+    }
+
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+    if (!rows || rows.length === 0) throw new Error('Planilha sem dados válidos.');
+    
+    processRows(rows, currentTab === 'situacao' ? 'Nuvem (Situação)' : 'Nuvem (Chamados)');
+  } catch(e) {
+    showStatus('error', `✗ Erro de rede: ${e.message}. O provedor do SharePoint bloqueia conexões CORS via navegador. Recomenda-se realizar o download local e utilizar a opção 'Carregar Planilha'.`);
+  } finally {
+    btn.disabled = false;
+    label.textContent = 'Atualizar da Nuvem';
+  }
+}
+
+function handleFile(evt){
+  const file=evt.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw: true, defval: ''});
+      processRows(rows, file.name);
+    }catch(err){showStatus('error','Erro na decodificação do arquivo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+  evt.target.value='';
+}
+
+const GH = { user:'Fred-Alexandrino', repo:'oem', file:'index.html', token:'' };
+let PAGE_SIZE=10, DATA=[], page=0;
+let filters={usina:'Todos',fab:'Todos',status:'Todos'};
+const PALETTE=['#388bfd','#d29922','#3fb950','#a371f7','#f85149','#39d353','#58a6ff','#e3b341'];
+const USINA_COLORS={};
+
+const COL_MAP_SITUACAO = {
+  id: ['ID_FALHA','ID FALHA','ID'],
+  usina: ['USINA','PLANTA'],
+  inv: ['INVERSOR','INV'],
+  dataOc: ['DATA_OCORRENCIA','DATA OCORRENCIA','DATA_OCORRÊNCIA'],
+  causa: ['CAUSA_PROVAVEL','CAUSA PROVAVEL','CAUSA'],
+  medida: ['MEDIDA_ADOTADA','MEDIDA ADOTADA','MEDIDA'],
+  status: ['STATUS_FINAL','STATUS FINAL','STATUS'],
+  dataFim: ['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO'],
+  fab: ['FABRICANTE','MARCA'],
+  tipo: ['TIPO_CORRECAO','TIPO CORREÇÃO'],
+  inop: ['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERÂNCIA','PERCENTUAL INOPERANCIA'],
+  dias: ['TEMPO_INOPERANTE','DIAS','DOWNTIME_DIAS']
+};
+
+const COL_MAP_CHAMADOS = {
+  id: ['CHAMADO','ID_CHAMADO','TICKET','ID'],
+  usina: ['USINA','PLANTA'],
+  inv: ['INVERSOR','EQUIPAMENTO'],
+  dataOc: ['DATA_ABERTURA','DATA ABERTURA','ABERTURA'],
+  causa: ['FALHA','SINTOMA','DESCRICAO','DESCRIÇÃO'],
+  medida: ['ACAO_REALIZADA','AÇÃO ADOTADA','SOLUÇÃO'],
+  status: ['STATUS','SITUAÇÃO','SITUACAO'],
+  dataFim: ['DATA_FECHAMENTO','DATA ENCERRAMENTO'],
+  tipo: ['TIPO','GRAVIDADE','CATEGORIA'],
+  dias: ['PRAZO','DIAS_ABERTO']
+};
+
+function findCol(headers, key, mapEscolha) {
+  const map = mapEscolha[key] || [];
+  for (const h of headers) {
+    const hu = h.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (map.some(c => hu === c.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))) return h;
+  }
+  for (const h of headers) {
+    const hu = h.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (map.some(c => {
+       const cu = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+       return new RegExp(`\\b${cu}\\b`).test(hu);
+    })) return h;
+  }
+  return null;
+}
+
+function parseDate(val){
+  if(!val)return null;
+  if(val instanceof Date)return val.toISOString().slice(0,10);
+  if(typeof val==='number')return new Date(Math.round((val-25569)*86400*1000)).toISOString().slice(0,10);
+  const s=val.toString().trim();
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+  return s.length>=10?s.slice(0,10):null;
+}
+
+function processRows(rows, source) {
+  const headers = Object.keys(rows[0]);
+  const currentMap = currentTab === 'situacao' ? COL_MAP_SITUACAO : COL_MAP_CHAMADOS;
+  const cols = {};
+  for (const k of Object.keys(currentMap)) cols[k] = findCol(headers, k, currentMap);
+
+  DATA = rows.map((r, i) => {
+    const get = k => cols[k] ? (r[cols[k]] !== undefined ? r[cols[k]].toString().trim() : '') : '';
+    let inopVal = get('inop');
+    let parsedInop = 0;
+    if(inopVal) {
+      let n = parseFloat(inopVal.replace(',', '.').replace('%', ''));
+      if(!isNaN(n)) parsedInop = n > 1 ? n / 100 : n;
+    }
+    return {
+      id: get('id') || `FT-${String(i+1).padStart(3,'0')}`,
+      usina: get('usina') || 'Não Informado',
+      inv: get('inv') || '—',
+      dataOc: parseDate(get('dataOc')) || get('dataOc') || '—',
+      causa: get('causa') || 'Não Informado',
+      medida: get('medida') || '—',
+      status: get('status') || 'Aberto',
+      dataFim: parseDate(get('dataFim')) || get('dataFim') || '—',
+      fab: currentTab === 'situacao' ? (get('fab') || 'Não Informado') : 'N/A',
+      tipo: get('tipo') || 'Corretiva',
+      inop: currentTab === 'situacao' ? parsedInop : 0,
+      dias: Math.round(parseFloat(get('dias'))) || 0
+    };
+  }).filter(r => r.usina !== 'Não Informado');
+
+  const usinas = [...new Set(DATA.map(r => r.usina))];
+  usinas.forEach((u, i) => USINA_COLORS[u] = PALETTE[i % PALETTE.length]);
+  filters = { usina: 'Todos', fab: 'Todos', status: 'Todos' }; page = 0;
+
+  document.getElementById('empty-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+  document.getElementById('btn-export').disabled = false;
+  
+  if (currentTab === 'chamados') {
+    document.getElementById('filter-fab-row').style.display = 'none';
+    document.getElementById('extra-charts-row').style.display = 'none';
+    document.getElementById('gantt-card-row').style.display = 'none';
+    document.getElementById('title-chart-causas').textContent = 'Tipos de Falhas/Sintomas';
+    document.getElementById('title-chart-usinas').textContent = 'Chamados por Usina';
+    document.getElementById('table-title-lbl').textContent = 'Histórico do Controle de Chamados';
+  } else {
+    document.getElementById('filter-fab-row').style.display = 'flex';
+    document.getElementById('extra-charts-row').style.display = 'grid';
+    document.getElementById('gantt-card-row').style.display = 'block';
+    document.getElementById('title-chart-causas').textContent = 'Causas de Falha';
+    document.getElementById('title-chart-usinas').textContent = 'Falhas por Usina';
+    document.getElementById('table-title-lbl').textContent = 'Detalhes Operacionais';
+  }
+
+  showStatus('ok', `✓ ${DATA.length} registros computados estruturalmente via importação de ${source}.`);
+  updatePublishBtn();
+  buildTableHeader();
+  render();
+}
+
+function buildTableHeader() {
+  const thead = document.getElementById('table-thead');
+  if (currentTab === 'situacao') {
+    thead.innerHTML = `<tr>
+      <th style="width:68px">ID</th><th style="width:105px">Usina</th><th style="width:62px">Inv.</th>
+      <th style="width:88px">Ocorrência</th><th style="width:140px">Causa</th><th style="width:110px">Medida</th>
+      <th style="width:65px">Inoper.</th><th style="width:55px">Dias</th><th style="width:85px">Status</th><th style="width:72px">Fabricante</th>
+    </tr>`;
+  } else {
+    thead.innerHTML = `<tr>
+      <th style="width:80px">Chamado</th><th style="width:120px">Usina</th><th style="width:80px">Inv.</th>
+      <th style="width:90px">Abertura</th><th style="width:180px">Sintoma / Diagnóstico</th><th style="width:180px">Ação de Reparo</th>
+      <th style="width:60px">Dias</th><th style="width:90px">Status</th><th style="width:80px">Tipo</th>
+    </tr>`;
+  }
+}
+
+function renderTable(data) {
+  const start = page * PAGE_SIZE, slice = data.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('table-body'), empty = document.getElementById('empty-state');
+  document.getElementById('table-count').textContent = `${data.length} registros selecionados`;
+  
+  if (!data.length) { tbody.innerHTML = ''; empty.style.display = 'block'; document.getElementById('pager-info').textContent = ''; document.getElementById('btn-prev').disabled=true; document.getElementById('btn-next').disabled=true; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = slice.map(r => {
+    const statusText = r.status.toLowerCase();
+    const isDone = statusText.includes('conclu') || statusText.includes('fechad') || statusText.includes('resolvid');
+    const badge = isDone ? '<span class="badge badge-green">✓ Finalizado</span>' : '<span class="badge badge-red">● Ativo</span>';
+    
+    if (currentTab === 'situacao') {
+      const cls = r.dias >= 25 ? 'row-high' : r.dias >= 15 ? 'row-med' : '';
+      return `<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td>${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
+    } else {
+      return `<tr><td><span class="id-chip">${r.id}</span></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td>${r.dias}d</td><td>${badge}</td><td>${r.tipo}</td></tr>`;
+    }
+  }).join('');
+  
+  const end = Math.min(start + PAGE_SIZE, data.length);
+  document.getElementById('pager-info').textContent = `${start + 1}–${end} de ${data.length}`;
+  document.getElementById('btn-prev').disabled = page === 0;
+  document.getElementById('btn-next').disabled = end >= data.length;
+}
+
+function filtered(){
+  return DATA.filter(r => {
+    if(filters.usina !== 'Todos' && r.usina !== filters.usina) return false;
+    if(currentTab === 'situacao' && filters.fab !== 'Todos' && r.fab !== filters.fab) return false;
+    if(filters.status !== 'Todos' && r.status !== filters.status) return false;
+    return true;
+  });
+}
+function setFilter(k,v){ filters[k]=v; page=0; render(); }
+function changePage(d){ const data=filtered(); page=Math.max(0,Math.min(Math.ceil(data.length/PAGE_SIZE)-1,page+d)); renderTable(data); }
+
+function renderPills(id,vals,key){
+  document.getElementById(id).innerHTML=vals.map(v=>`<button class="pill${filters[key]===v?' active':''}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`).join('');
+}
+
+function renderKPIs(data) {
+  const total = data.length;
+  const abertos = data.filter(r => {
+    const s = r.status.toLowerCase();
+    return !s.includes('conclu') && !s.includes('fechad') && !s.includes('resolv');
+  }).length;
+  const concluidores = total - abertos;
+  
+  if (currentTab === 'situacao') {
+    const dias = data.reduce((s, r) => s + r.dias, 0);
+    const mttr = total > 0 ? (dias / total).toFixed(1) : 0;
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Ocorrências Totais</div><div class="kpi-value">${total}</div><div class="kpi-meta">Eventos atrelados</div></div>
+      <div class="kpi amber"><div class="kpi-label">Tempo Inoperante</div><div class="kpi-value">${dias}</div><div class="kpi-meta">Dias acumulados</div></div>
+      <div class="kpi red"><div class="kpi-label">MTTR Médio</div><div class="kpi-value">${mttr}</div><div class="kpi-meta">Dias para resolução</div></div>
+      <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${concluidores}</div><div class="kpi-meta">${abertos} pendências</div></div>`;
+  } else {
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Total Chamados</div><div class="kpi-value">${total}</div><div class="kpi-meta">Abertos no sistema</div></div>
+      <div class="kpi red"><div class="kpi-label">Em Execução</div><div class="kpi-value">${abertos}</div><div class="kpi-meta">Esperando tratativa</div></div>
+      <div class="kpi green"><div class="kpi-label">Chamados Fechados</div><div class="kpi-value">${concluidores}</div><div class="kpi-meta">Status concluído</div></div>
+      <div class="kpi amber"><div class="kpi-label">Eficiência (SLA)</div><div class="kpi-value">${total > 0 ? Math.round((concluidores/total)*100) : 0}%</div><div class="kpi-meta">Taxa de resolução</div></div>`;
+  }
+}
+
+function renderBarChart(id,data,groupKey,colorFn){
+  const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?sorted[0][1]:1;
+  const el=document.getElementById(id);
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3); font-size:12px">Sem registros atrelados</div>';return;}
+  el.innerHTML=sorted.map(([label,n])=>{
+    const pct=Math.round((n/max)*100);
+    return`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(label)}">${n}</div></div></div>`;
+  }).join('');
+}
+
+function renderMTTR(data){
+  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
+  const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);
+  const max=rows[0]?rows[0][1]:1;
+  document.getElementById('chart-mttr').innerHTML=rows.length?rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((avg/max)*100)}%;background:${USINA_COLORS[u]}">${avg.toFixed(1)}d</div></div></div>`).join(''):'<div style="color:var(--text3); font-size:12px">Sem dados temporais</div>';
+}
+
+function renderTipo(data){
+  const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
+  const total=data.length;
+  document.getElementById('chart-tipo').innerHTML=total?`<div style="padding:10px; font-size:13px">${Object.entries(counts).map(([k,v])=>`<div style="margin-bottom:6px"><strong>${k}:</strong> ${v} eventos (${((v/total)*100).toFixed(0)}%)</div>`).join('')}</div>`:'<div style="color:var(--text3); font-size:12px">Sem categorização</div>';
+}
+
+function renderGantt(data){
+  document.getElementById('gantt-chart').innerHTML='<div style="color:var(--text3); font-size:12px; padding:10px;">Renderização em linha do tempo suportada na visualização local para depuração avançada.</div>';
+}
+
+function render(){
+  const data = filtered();
+  renderPills('f-usina', uniq(DATA, 'usina'), 'usina');
+  if(currentTab === 'situacao') renderPills('f-fab', uniq(DATA, 'fab'), 'fab');
+  renderPills('f-status', ['Todos', ...new Set(DATA.map(r => r.status))], 'status');
+  
+  renderKPIs(data);
+  renderBarChart('chart-causas', data, 'causa', () => '#388bfd');
+  renderBarChart('chart-usinas', data, 'usina', u => USINA_COLORS[u] || '#388bfd');
+  
+  if (currentTab === 'situacao') {
+    renderMTTR(data); renderTipo(data); renderGantt(data);
+  }
+  renderTable(data);
+}
+
+function exportCSV(){
+  const data=filtered();
+  const isSit = currentTab === 'situacao';
+  const cols = isSit 
+    ? ['ID','Usina','Inversor','Data Ocorrência','Causa','Medida','Inoperância %','Dias','Status','Fabricante']
+    : ['Chamado','Usina','Inversor','Abertura','Sintoma','Ação Adotada','Dias','Status','Tipo'];
+  const rows = data.map(r => isSit 
+    ? [r.id,r.usina,r.inv,r.dataOc,r.causa,r.medida,(r.inop*100).toFixed(0)+'%',r.dias,r.status,r.fab]
+    : [r.id,r.usina,r.inv,r.dataOc,r.causa,r.medida,r.dias,r.status,r.tipo]);
+  const csv=[cols,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));a.download=`exportacao_${currentTab}.csv`;a.click();
+}
+
+function loadConfig(){ try{ const s=localStorage.getItem('om_gh_config'); if(s) Object.assign(GH,JSON.parse(s)); }catch(e){} updateTokenIndicator(); }
+function saveConfig(){ const t=document.getElementById('cfg-token').value.trim(); if(!t)return; GH.token=t; localStorage.setItem('om_gh_config',JSON.stringify(GH)); closeConfigModal(); updateTokenIndicator(); updatePublishBtn(); showStatus('ok','Integrador configurado com sucesso.'); }
+function updateTokenIndicator(){ document.getElementById('tok-indicator').innerHTML = GH.token ? '<span class="dot dot-ok"></span>Token' : '<span class="dot dot-no"></span>Token'; }
+function updatePublishBtn(){ document.getElementById('btn-publish').disabled=!(DATA.length>0 && GH.token); }
+function openConfigModal(){ loadConfig(); document.getElementById('cfg-token').value=GH.token; document.getElementById('modal-config').style.display='flex'; }
+function closeConfigModal(){ document.getElementById('modal-config').style.display='none'; }
+function openPublishModal(){ document.getElementById('modal-publish').style.display='flex'; document.getElementById('pub-status-box').style.display='none'; }
+function closePublishModal(){ document.getElementById('modal-publish').style.display='none'; }
+
+function setPubStatus(type,msg){
+  const box=document.getElementById('pub-status-box');
+  box.style.display='block';
+  const cls=type==='ok'?'#3fb950':type==='err'?'#f85149':'#388bfd';
+  const bg=type==='ok'?'rgba(63,185,80,.1)':type==='err'?'rgba(248,81,73,.1)':'rgba(56,139,253,.1)';
+  box.style.background=bg; box.style.color=cls; box.style.border=`1px solid ${cls}`;
+  box.innerHTML=type==='loading'?`<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div><span>${msg}</span></div>`:`<span>${msg}</span>`;
+}
+
+async function publishToGitHub(){
+  const cb=document.getElementById('pub-confirm-btn'),xb=document.getElementById('pub-cancel-btn');
+  cb.disabled=true; xb.disabled=true;
+  setPubStatus('loading','Conectando ao terminal Git...');
+  try{
+    const html=buildHTML();
+    const encoded=btoa(unescape(encodeURIComponent(html)));
+    let sha='';
+    try{
+      const r=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json'}});
+      if(r.ok){ const j=await r.json(); sha=j.sha; }
+    }catch(e){}
+    const body={message:`Commit automatizado O&M — ${new Date().toLocaleString('pt-BR')} via terminal estendido`,content:encoded,branch:'main'};
+    if(sha) body.sha=sha;
+    const res=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{
+      method:'PUT',headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const data=await res.json();
+    if(res.ok){
+      setPubStatus('ok','Deploy estático concluído e espelhado. Atualize a página pública.');
+      cb.innerHTML='Publicado'; xb.textContent='Fechar'; xb.disabled=false;
+    } else {
+      setPubStatus('err',`Bloqueio no push: Erro ${res.status}. Valide seu token.`);
+      cb.disabled=false; xb.disabled=false;
+    }
+  }catch(e){
+    setPubStatus('err',`Falha de roteamento: ${e.message}`);
+    cb.disabled=false; xb.disabled=false;
+  }
+}
+
+function buildHTML(){
+  const src=document.documentElement.outerHTML;
+  const inject=`<script>(function(){const d=${JSON.stringify(DATA)};const c=${JSON.stringify(USINA_COLORS)};window.addEventListener('DOMContentLoaded',function(){Object.assign(USINA_COLORS,c);processRows(d.map(function(r){return{ID_FALHA:r.id,USINA:r.usina,INVERSOR:r.inv,DATA_OCORRENCIA:r.dataOc,CAUSA_PROVAVEL:r.causa,MEDIDA_ADOTADA:r.medida,STATUS_FINAL:r.status,DATA_CONCLUSAO:r.dataFim,FABRICANTE:r.fab,TIPO_CORRECAO:r.tipo,PERCENTUAL_INOPERANCIA:r.inop,TEMPO_INOPERANTE:r.dias};}),'Snapshot Serializado');});})();<\/script>`;
+  return src.replace('</body>', inject+'</body>');
+}
+
+document.addEventListener('DOMContentLoaded', loadConfig);
+</script>
+</body>
+</html>order2:rgba(255,255,255,0.13);
   --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
   --blue:#388bfd;--blue-dim:#1f4073;--blue-bg:#0d2241;
   --green:#3fb950;--green-bg:#0d2818;
