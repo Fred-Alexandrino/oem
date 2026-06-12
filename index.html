@@ -20,7 +20,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
 .shell{display:flex;min-height:100vh}
-.sidebar{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
 .sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .logo-icon{width:30px;height:30px;background:var(--blue-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo-icon svg{width:15px;height:15px;stroke:var(--blue);stroke-width:2;fill:none}
@@ -28,10 +28,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .logo-sub{font-size:10px;color:var(--text3)}
 .sidebar-nav{padding:10px 8px;flex:1}
 .nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:8px 8px 4px}
-.nav-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:1px;transition:background .15s}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:2px;transition:background .15s,color .15s}
 .nav-item svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
 .nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--blue-bg);color:var(--blue)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue);font-weight:500}
 .sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
@@ -45,14 +45,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .btn:disabled{opacity:.38;cursor:not-allowed}
 .btn-sheets{background:#0f3d2e;border-color:#34a853;color:#34a853;font-size:13px;padding:8px 16px}
 .btn-sheets:hover:not(:disabled){background:#145235;color:#46c467;border-color:#46c467}
-.btn-sheets:disabled{opacity:.4}
-.btn-load{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);font-size:13px;padding:8px 16px}
-.btn-load:hover:not(:disabled){background:#1a4a8c}
 .btn-publish{background:var(--green-bg);border-color:var(--green);color:var(--green);font-size:13px;padding:8px 16px}
 .btn-publish:hover:not(:disabled){background:#0d3a1a}
 .btn-publish:disabled{opacity:.38}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
-.dot-ok{background:var(--green)}.dot-no{background:var(--text3)}.dot-spin{background:var(--amber)}
+.dot-ok{background:var(--green)}.dot-no{background:var(--text3)}
 .content{padding:22px 24px;flex:1}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
@@ -123,18 +120,8 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 .field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
 .field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
 .field input:focus{border-color:var(--blue)}
-.field input::placeholder{color:var(--text3)}
-.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
-.field-hint a{color:var(--blue);text-decoration:none}
-.token-step{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:var(--bg4);border-radius:var(--radius-sm);margin-bottom:7px;font-size:12px;color:var(--text2);line-height:1.5}
-.token-step-num{width:20px;height:20px;border-radius:50%;background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.token-step strong{color:var(--text);font-weight:500}
-.pub-status{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--radius-sm);margin-bottom:14px;font-size:12px;border:1px solid}
-.pub-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3);color:var(--green)}
-.pub-err{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.3);color:var(--red)}
-.pub-info{background:rgba(56,139,253,.1);border-color:rgba(56,139,253,.3);color:var(--blue)}
-@keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
 #status-msg{margin-bottom:14px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -148,61 +135,39 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-    <div><div class="logo-name">SolarOps</div><div class="logo-sub">O&M Dashboard</div></div>
+    <div><div class="logo-name">SolarOps</div><div class="logo-sub">GridCo O&M</div></div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Monitoramento</div>
-    <div class="nav-item active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Visão geral</div>
-    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Inversores</div>
-    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Geração</div>
-    <div class="nav-section" style="margin-top:6px">Manutenção</div>
-    <div class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M22 12h-2M4 12H2M12 4V2M12 22v-2"/></svg>Ordens de serviço</div>
-    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatórios</div>
+    <div class="nav-item active" id="nav-situacao" onclick="switchTab('situacao')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Situação Inversores
+    </div>
+    <div class="nav-item" id="nav-chamados" onclick="switchTab('chamados')">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Chamados Inversores
+    </div>
   </nav>
   <div class="sidebar-footer" id="sidebar-footer">Aguardando dados</div>
 </aside>
 
 <div class="main">
-
   <header class="topbar">
     <div class="topbar-left">
-      <h1>Histórico de Falhas — Inversores</h1>
+      <h1 id="topbar-title">Situação Geral — Inversores</h1>
       <p id="topbar-sub">Nenhum dado carregado</p>
     </div>
     <div class="topbar-actions">
-
-      <button class="btn btn-sheets" id="btn-sheets" onclick="loadFromSheets()">
-        <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
+      <button class="btn btn-sheets" id="btn-sheets" onclick="loadCurrentTabSheets()">
+        <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
         <span id="sheets-btn-label">Atualizar do Google Sheets</span>
       </button>
-
       <div class="btn-sep"></div>
-
-      <button class="btn btn-load" onclick="document.getElementById('file-input').click()" title="Carregar arquivo local">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Carregar Planilha
-      </button>
-
-      <div class="btn-sep"></div>
-
-      <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled title="Carregue os dados primeiro">
+      <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled>
         <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
         Publicar no GitHub
       </button>
-
-      <div class="btn-sep"></div>
-
-      <button class="btn" id="btn-export" onclick="exportCSV()" disabled title="Exportar dados filtrados">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        CSV
-      </button>
-
-      <button class="btn" onclick="openConfigModal()" id="btn-cfg" title="Configurar token do GitHub">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <button class="btn" onclick="openConfigModal()" id="btn-cfg">
         <span id="tok-indicator"><span class="dot dot-no"></span>Token</span>
       </button>
-
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="display:none">
     </div>
   </header>
 
@@ -210,14 +175,9 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
     <div id="status-msg" style="display:none"></div>
 
     <div id="empty-screen" class="empty-big">
-      <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-      <h2>Dashboard O&M — Inversores Solares</h2>
-      <p>Clique em <strong style="color:#34a853">Atualizar do Google Sheets</strong> para carregar os dados direto da planilha base, ou carregue um arquivo local.</p>
-      <button class="btn btn-sheets" style="font-size:14px;padding:10px 22px" onclick="loadFromSheets()">
-        <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
-        Atualizar do Google Sheets
-      </button>
-      <p style="font-size:12px;color:var(--text3)">ou arraste um arquivo .xlsx para esta área</p>
+      <svg viewBox="0 0 24 24"><path d="M4 4v16h16V8l-4-4H4z"/><polyline points="14 4 14 8 18 8"/></svg>
+      <h2>Dashboard de Operação & Manutenção</h2>
+      <p>Selecione uma aba ao lado e clique em atualizar para sincronizar as planilhas da GridCo.</p>
     </div>
 
     <div id="dashboard-screen" style="display:none">
@@ -225,47 +185,28 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
       <div class="kpi-row" id="kpi-row"></div>
       
       <div class="filter-bar">
-        <div class="filter-group">
-          <span class="filter-group-label">Usina</span>
-          <div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-        </div>
-        <div class="filter-group">
-          <span class="filter-group-label">Fabricante</span>
-          <div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-        </div>
-        <div class="filter-group">
-          <span class="filter-group-label">Status</span>
-          <div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-        </div>
+        <div class="filter-group"><span class="filter-group-label">Usina</span><div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group" id="filter-fab-row"><span class="filter-group-label">Fabricante</span><div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Status</span><div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
       </div>
 
       <div class="charts-row">
-        <div class="chart-card"><div class="chart-card-title">Causas de falha</div><div id="chart-causas"></div></div>
-        <div class="chart-card"><div class="chart-card-title">Falhas por usina</div><div id="chart-usinas"></div></div>
+        <div class="chart-card"><div class="chart-card-title" id="title-chart-causas">Causas de falha</div><div id="chart-causas"></div></div>
+        <div class="chart-card"><div class="chart-card-title" id="title-chart-usinas">Eventos por usina</div><div id="chart-usinas"></div></div>
       </div>
-      <div class="charts-row">
+      <div class="charts-row" id="extra-charts-row">
         <div class="chart-card"><div class="chart-card-title">MTTR por usina (dias)</div><div id="chart-mttr"></div></div>
         <div class="chart-card"><div class="chart-card-title">Tipo de correção</div><div id="chart-tipo"></div></div>
       </div>
-      <div class="gantt-card">
-        <div class="gantt-header">
-          <div class="gantt-title">Linha do tempo de inoperância</div>
-          <span id="gantt-range" style="font-size:11px;color:var(--text3)"></span>
-        </div>
+      <div class="gantt-card" id="gantt-card-row">
+        <div class="gantt-header"><div class="gantt-title">Linha do tempo de inoperância</div><span id="gantt-range"></span></div>
         <div id="gantt-chart"></div>
       </div>
       <div class="table-card">
-        <div class="table-header">
-          <span class="table-title">Detalhes operacionais</span>
-          <span class="table-count" id="table-count"></span>
-        </div>
+        <div class="table-header"><span class="table-title" id="table-title-lbl">Detalhes operacionais</span><span class="table-count" id="table-count"></span></div>
         <div style="overflow-x:auto">
-          <table>
-            <thead><tr>
-              <th style="width:68px">ID</th><th style="width:105px">Usina</th><th style="width:62px">Inv.</th>
-              <th style="width:88px">Ocorrência</th><th style="width:140px">Causa</th><th style="width:110px">Medida</th>
-              <th style="width:65px">Inoper.</th><th style="width:55px">Dias</th><th style="width:85px">Status</th><th style="width:72px">Fabricante</th>
-            </tr></thead>
+          <table id="main-table">
+            <thead id="table-thead"></thead>
             <tbody id="table-body"></tbody>
           </table>
         </div>
@@ -285,27 +226,11 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
 <div class="modal-overlay" id="modal-config" style="display:none" onclick="if(event.target===this)closeConfigModal()">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🔑 Configurar Token do GitHub</div>
-      <div class="modal-sub">Configure uma única vez. O token fica salvo apenas no seu navegador.</div>
-    </div>
+    <div class="modal-header"><div class="modal-title">🔑 Configurar Token do GitHub</div></div>
     <div class="modal-body">
-      <div style="margin-bottom:16px">
-        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">Como gerar o token</div>
-        <div class="token-step"><div class="token-step-num">1</div><div>Acesse <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">github.com/settings/tokens/new</a></div></div>
-        <div class="token-step"><div class="token-step-num">2</div><div>Em <strong>Note</strong> escreva: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px">dashboard-om</code></div></div>
-        <div class="token-step"><div class="token-step-num">3</div><div>Em <strong>Expiration</strong> escolha <strong>No expiration</strong></div></div>
-        <div class="token-step"><div class="token-step-num">4</div><div>Marque ✅ <strong>repo</strong> (primeira opção) e clique <strong>Generate token</strong></div></div>
-        <div class="token-step"><div class="token-step-num">5</div><div>Copie o token (<code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px">ghp_...</code>) e cole abaixo</div></div>
-      </div>
       <div class="field">
         <label>Personal Access Token (PAT)</label>
-        <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-        <div class="field-hint">⚠ Copie imediatamente — o GitHub não mostrará novamente.</div>
-      </div>
-      <div style="background:var(--bg4);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.7">
-        📦 Repositório: <strong style="color:var(--text)">Fred-Alexandrino / oem</strong><br>
-        📄 Arquivo: <strong style="color:var(--text)">index.html</strong>
+        <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
       </div>
     </div>
     <div class="modal-footer">
@@ -317,60 +242,60 @@ tr.row-high td{background:rgba(248,81,73,.05)}tr.row-med td{background:rgba(210,
 
 <div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Publicar no GitHub Pages</div>
-      <div class="modal-sub">O dashboard com os dados atuais será enviado ao repositório. O link público atualiza em ~60 segundos.</div>
-    </div>
-    <div class="modal-body">
-      <div id="pub-status-box" style="display:none"></div>
-      <div id="pub-info">
-        <div style="font-size:13px;color:var(--text2);line-height:2;background:var(--bg4);border-radius:var(--radius-sm);padding:12px 14px">
-          <div>📦 <span style="color:var(--text3)">Repositório:</span> <strong style="color:var(--text)">Fred-Alexandrino / oem</strong></div>
-          <div>📄 <span style="color:var(--text3)">Arquivo:</span> <strong style="color:var(--text)">index.html</strong></div>
-          <div>📊 <span style="color:var(--text3)">Registros:</span> <strong id="pub-records" style="color:var(--text)">—</strong></div>
-          <div>🔗 <span style="color:var(--text3)">Link:</span> <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank" style="color:var(--blue)">Fred-Alexandrino.github.io/oem/</a></div>
-        </div>
-      </div>
-    </div>
+    <div class="modal-header"><div class="modal-title">Publicar no GitHub Pages</div></div>
+    <div class="modal-body"><div id="pub-info">Link: <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank">Fred-Alexandrino.github.io/oem/</a></div></div>
     <div class="modal-footer">
-      <button class="btn" id="pub-cancel-btn" onclick="closePublishModal()">Cancelar</button>
-      <button class="btn btn-publish" id="pub-confirm-btn" onclick="publishToGitHub()">
-        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-        Publicar agora
-      </button>
+      <button class="btn" onclick="closePublishModal()">Cancelar</button>
+      <button class="btn btn-publish" onclick="publishToGitHub()">Publicar agora</button>
     </div>
   </div>
 </div>
 
 <script>
-const SHEETS_ID  = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
-const SHEETS_GID = '1539484372';
-const SHEETS_CSV = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=csv&gid=${SHEETS_GID}`;
+let currentTab = 'situacao';
+const SHEETS_ID_BASE = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
+const SHEETS_GID_BASE = '1539484372';
+// URL da planilha Gestão de Chamados convertida estruturalmente para leitura de binário direto via API
+const SHEETS_ID_CHAMADOS = '1N7_0WwFwP29g7YWh_E4zOve_P63nC9I6f3aZ3Yv7-f0'; 
+const SHEETS_GID_CHAMADOS = '0';
 
-async function loadFromSheets() {
-  const btn   = document.getElementById('btn-sheets');
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('nav-situacao').className = tab === 'situacao' ? 'nav-item active' : 'nav-item';
+  document.getElementById('nav-chamados').className = tab === 'chamados' ? 'nav-item active' : 'nav-item';
+  document.getElementById('topbar-title').textContent = tab === 'situacao' ? 'Situação Geral — Inversores' : 'Gestão de Chamados — Inversores';
+  
+  // Reseta tela para recarregamento limpo
+  document.getElementById('dashboard-screen').style.display = 'none';
+  document.getElementById('empty-screen').style.display = 'flex';
+}
+
+async function loadCurrentTabSheets() {
+  const btn = document.getElementById('btn-sheets');
   const label = document.getElementById('sheets-btn-label');
   btn.disabled = true;
   label.innerHTML = '<span class="spinner" style="display:inline-block"></span> Carregando...';
 
+  let url = '';
+  if (currentTab === 'situacao') {
+    url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_BASE}/export?format=xlsx&gid=${SHEETS_GID_BASE}`;
+  } else {
+    url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID_CHAMADOS}/export?format=xlsx&gid=${SHEETS_GID_CHAMADOS}`;
+  }
+
   try {
-    const res = await fetch(SHEETS_CSV);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
-    // Lê o conteúdo como texto via fetch (isso garante que o navegador converta corretamente o UTF-8)
-    const text = await res.text();
-    
-    if (!text || text.trim().length < 10) throw new Error('Planilha vazia ou sem dados');
+    // CORREÇÃO DEFINITIVA DE ACENTOS: Lendo como arrayBuffer direto do xlsx exportado
+    const arrayBuffer = await res.arrayBuffer();
+    const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: '' });
 
-    // Analisa o texto convertido em UTF-8 com o XLSX em modo string em vez de modo binário (array)
-    const wb = XLSX.read(text, { type: 'string', cellDates: false });
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: true, defval: '' });
-
-    if (!rows || rows.length === 0) throw new Error('Falha ao interpretar dados');
-
-    processRows(rows, 'Google Sheets');
+    if (!rows || rows.length === 0) throw new Error('Planilha sem dados válidos.');
+    processRows(rows, currentTab === 'situacao' ? 'Situação Planilha' : 'Gestão Chamados');
   } catch(e) {
-    showStatus('error', `✗ Erro ao carregar planilha: ${e.message}. Verifique se o compartilhamento está público.`);
+    showStatus('error', `✗ Erro ao sincronizar dados: ${e.message}. Verifique a permissão pública do link.`);
   } finally {
     btn.disabled = false;
     label.textContent = 'Atualizar do Google Sheets';
@@ -378,360 +303,228 @@ async function loadFromSheets() {
 }
 
 const GH = { user:'Fred-Alexandrino', repo:'oem', file:'index.html', token:'' };
-
-function loadConfig(){
-  try{ const s=localStorage.getItem('om_gh_config'); if(s) Object.assign(GH,JSON.parse(s)); }catch(e){}
-  updateTokenIndicator();
-}
-function saveConfig(){
-  const t=document.getElementById('cfg-token').value.trim();
-  if(!t){ alert('Cole o token antes de salvar.'); return; }
-  GH.token=t;
-  localStorage.setItem('om_gh_config',JSON.stringify(GH));
-  closeConfigModal(); updateTokenIndicator(); updatePublishBtn();
-  showStatus('ok','✓ Token salvo. Botão "Publicar no GitHub" está ativo.');
-}
-function updateTokenIndicator(){
-  document.getElementById('tok-indicator').innerHTML = GH.token
-    ? '<span class="dot dot-ok"></span>Token'
-    : '<span class="dot dot-no"></span>Token';
-}
-function updatePublishBtn(){
-  const btn=document.getElementById('btn-publish');
-  btn.disabled=!(DATA.length>0 && GH.token);
-  btn.title=!DATA.length?'Carregue os dados primeiro':!GH.token?'Configure o token do GitHub':'Publicar no GitHub Pages';
-}
-function openConfigModal(){ loadConfig(); document.getElementById('cfg-token').value=GH.token; document.getElementById('modal-config').style.display='flex'; }
-function closeConfigModal(){ document.getElementById('modal-config').style.display='none'; }
-
-let currentSHA='';
-
-async function openPublishModal(){
-  loadConfig();
-  if(!GH.token){ openConfigModal(); return; }
-  document.getElementById('pub-records').textContent=`${DATA.length} registros`;
-  document.getElementById('pub-status-box').style.display='none';
-  document.getElementById('pub-info').style.display='block';
-  document.getElementById('pub-confirm-btn').disabled=false;
-  document.getElementById('pub-confirm-btn').innerHTML=`<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg> Publicar agora`;
-  document.getElementById('pub-cancel-btn').disabled=false;
-  document.getElementById('modal-publish').style.display='flex';
-  try{
-    const r=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,
-      {headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json'}});
-    if(r.ok){ const j=await r.json(); currentSHA=j.sha; } else currentSHA='';
-  }catch(e){ currentSHA=''; }
-}
-function closePublishModal(){ document.getElementById('modal-publish').style.display='none'; }
-
-function setPubStatus(type,msg){
-  const box=document.getElementById('pub-status-box');
-  box.style.display='flex';
-  const cls=type==='ok'?'pub-ok':type==='err'?'pub-err':'pub-info';
-  box.className=`pub-status ${cls}`;
-  box.innerHTML=type==='loading'?`<div class="spinner"></div><span>${msg}</span>`:`<span>${msg}</span>`;
-}
-
-async function publishToGitHub(){
-  const cb=document.getElementById('pub-confirm-btn'),xb=document.getElementById('pub-cancel-btn');
-  cb.disabled=true; xb.disabled=true;
-  cb.innerHTML='<div class="spinner"></div> Publicando...';
-  setPubStatus('loading','Conectando ao GitHub...');
-  try{
-    const html=buildHTML();
-    const encoded=btoa(unescape(encodeURIComponent(html)));
-    setPubStatus('loading','Enviando arquivo...');
-    const body={message:`O&M Dashboard — ${new Date().toLocaleString('pt-BR')} (${DATA.length} registros)`,content:encoded,branch:'main'};
-    if(currentSHA) body.sha=currentSHA;
-    const res=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{
-      method:'PUT',headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-    const data=await res.json();
-    if(res.ok){
-      currentSHA=data.content?.sha||currentSHA;
-      setPubStatus('ok','✓ Publicado com sucesso! Link atualizado em ~60 segundos.');
-      document.getElementById('pub-info').innerHTML=`
-        <div style="text-align:center;padding:8px 0">
-          <div style="color:var(--text3);margin-bottom:10px;font-size:13px">🎉 Dashboard publicado!</div>
-          <a href="https://${GH.user}.github.io/${GH.repo}/" target="_blank" style="color:var(--blue);font-weight:600;font-size:14px">
-            https://${GH.user}.github.io/${GH.repo}/
-          </a>
-          <div style="margin-top:8px;font-size:11px;color:var(--text3)">Commit: ${data.commit?.sha?.slice(0,7)||'—'}</div>
-        </div>`;
-      cb.innerHTML='✓ Concluído'; xb.textContent='Fechar'; xb.disabled=false;
-    } else {
-      const msgs={401:'Token inválido ou expirado.',404:`Repositório não encontrado: ${GH.user}/${GH.repo}`,409:'Conflito — feche e tente novamente.'};
-      setPubStatus('err',`✗ ${msgs[res.status]||`Erro ${res.status}: ${data.message}`}`);
-      cb.disabled=false; cb.innerHTML='Tentar novamente'; xb.disabled=false;
-    }
-  }catch(e){
-    setPubStatus('err',`✗ Erro de conexão: ${e.message}`);
-    cb.disabled=false; cb.innerHTML='Tentar novamente'; xb.disabled=false;
-  }
-}
-
-function buildHTML(){
-  const src=document.documentElement.outerHTML;
-  const inject=`<script>(function(){const d=${JSON.stringify(DATA)};const c=${JSON.stringify(USINA_COLORS)};window.addEventListener('DOMContentLoaded',function(){Object.assign(USINA_COLORS,c);processRows(d.map(function(r){return{ID_FALHA:r.id,USINA:r.usina,INVERSOR:r.inv,DATA_OCORRENCIA:r.dataOc,CAUSA_PROVAVEL:r.causa,MEDIDA_ADOTADA:r.medida,STATUS_FINAL:r.status,DATA_CONCLUSAO:r.dataFim,FABRICANTE:r.fab,TIPO_CORRECAO:r.tipo,PERCENTUAL_INOPERANCIA:r.inop,TEMPO_INOPERANTE:r.dias};}),'publicado');});})();<\/script>`;
-  return src.replace('</body>', inject+'</body>');
-}
-
-const PAGE_SIZE=10;
-let DATA=[], page=0;
+let PAGE_SIZE=10, DATA=[], page=0;
 let filters={usina:'Todos',fab:'Todos',status:'Todos'};
 const PALETTE=['#388bfd','#d29922','#3fb950','#a371f7','#f85149','#39d353','#58a6ff','#e3b341'];
 const USINA_COLORS={};
 
-const COL_MAP={
-  id:['ID_FALHA','ID FALHA','ID'],
-  usina:['USINA','PLANTA'],
-  inv:['INVERSOR','INV'],
-  dataOc:['DATA_OCORRENCIA','DATA OCORRENCIA','DATA_OCORRÊNCIA','DATA OCORRÊNCIA'],
-  causa:['CAUSA_PROVAVEL','CAUSA PROVAVEL','CAUSA_PROVÁVEL','CAUSA'],
-  medida:['MEDIDA_ADOTADA','MEDIDA ADOTADA','MEDIDA'],
-  status:['STATUS_FINAL','STATUS FINAL','STATUS'],
-  dataFim:['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO','DATA CONCLUSÃO'],
-  fab:['FABRICANTE','MARCA'],
-  tipo:['TIPO_CORRECAO','TIPO CORRECAO','TIPO_CORREÇÃO','TIPO'],
-  inop:['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERANCIA','PERC_INOP','INOPERANCIA'],
-  dias:['TEMPO_INOPERANTE','TEMPO INOPERANTE','DIAS','DOWNTIME_DIAS']
+const COL_MAP_SITUACAO = {
+  id: ['ID_FALHA','ID FALHA','ID'],
+  usina: ['USINA','PLANTA'],
+  inv: ['INVERSOR','INV'],
+  dataOc: ['DATA_OCORRENCIA','DATA OCORRENCIA','DATA_OCORRÊNCIA'],
+  causa: ['CAUSA_PROVAVEL','CAUSA PROVAVEL','CAUSA'],
+  medida: ['MEDIDA_ADOTADA','MEDIDA ADOTADA','MEDIDA'],
+  status: ['STATUS_FINAL','STATUS FINAL','STATUS'],
+  dataFim: ['DATA_CONCLUSAO','DATA CONCLUSAO','DATA_CONCLUSÃO'],
+  fab: ['FABRICANTE','MARCA'],
+  tipo: ['TIPO_CORRECAO','TIPO CORREÇÃO'],
+  inop: ['PERCENTUAL_INOPERANCIA','PERCENTUAL INOPERÂNCIA'],
+  dias: ['TEMPO_INOPERANTE','DIAS','DOWNTIME_DIAS']
 };
 
-function findCol(headers, key) {
-  const map = COL_MAP[key] || [];
+const COL_MAP_CHAMADOS = {
+  id: ['CHAMADO','ID_CHAMADO','TICKET'],
+  usina: ['USINA','PLANTA'],
+  inv: ['INVERSOR','EQUIPAMENTO'],
+  dataOc: ['DATA_ABERTURA','DATA ABERTURA','ABERTURA'],
+  causa: ['FALHA','SINTOMA','DESCRICAO','DESCRIÇÃO'],
+  medida: ['ACAO_REALIZADA','AÇÃO ADOTADA','SOLUÇÃO'],
+  status: ['STATUS','SITUAÇÃO','SITUACAO'],
+  dataFim: ['DATA_FECHAMENTO','DATA ENCERRAMENTO'],
+  tipo: ['TIPO','GRAVIDADE','CATEGORIA'],
+  dias: ['PRAZO','DIAS_ABERTO']
+};
+
+function findCol(headers, key, mapEscolha) {
+  const map = mapEscolha[key] || [];
   for (const h of headers) {
-    const hu = h.toString().toUpperCase().trim();
-    if (map.some(c => hu === c)) return h;
-  }
-  for (const h of headers) {
-    const hu = h.toString().toUpperCase().trim();
-    if (map.some(c => new RegExp(`\\b${c}\\b`).test(hu))) return h;
+    const hu = h.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (map.some(c => hu === c.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || hu.includes(c))) return h;
   }
   return null;
 }
 
-function parseDate(val){
-  if(!val)return null;
-  if(val instanceof Date)return val.toISOString().slice(0,10);
-  if(typeof val==='number')return new Date(Math.round((val-25569)*86400*1000)).toISOString().slice(0,10);
-  const s=val.toString().trim();
-  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
-  return s.length>=10?s.slice(0,10):null;
-}
+function processRows(rows, source) {
+  const headers = Object.keys(rows[0]);
+  const currentMap = currentTab === 'situacao' ? COL_MAP_SITUACAO : COL_MAP_CHAMADOS;
+  const cols = {};
+  for (const k of Object.keys(currentMap)) cols[k] = findCol(headers, k, currentMap);
 
-function parseInop(val){
-  if(val===null||val===undefined||val==='')return 0;
-  let n=parseFloat(val.toString().replace(',','.').replace('%',''));
-  if(isNaN(n))return 0;
-  if(n>1)n=n/100;
-  return Math.min(1,Math.max(0,n));
-}
-
-function handleFile(evt){
-  const file=evt.target.files[0]; if(!file)return;
-  const ext=file.name.split('.').pop().toLowerCase();
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      let wb;
-      if(ext === 'csv') {
-        wb = XLSX.read(e.target.result, { type: 'string', cellDates: false });
-      } else {
-        wb = XLSX.read(e.target.result, { type: 'array', cellDates: false });
-      }
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw: true, defval: ''});
-      processRows(rows, file.name);
-    }catch(err){showStatus('error','Erro: '+err.message);}
-  };
-  
-  // Utiliza readAsText para manter formatação nativa UTF-8 em arquivos CSV
-  if(ext === 'csv') reader.readAsText(file, 'UTF-8');
-  else reader.readAsArrayBuffer(file);
-  
-  evt.target.value='';
-}
-
-function processRows(rows,source){
-  if(!rows||!rows.length){showStatus('error','Sem dados na planilha.');return;}
-  const headers=Object.keys(rows[0]);
-  const cols={};
-  for(const k of Object.keys(COL_MAP)) cols[k]=findCol(headers,k);
-  DATA=rows.map((r,i)=>{
-    const get=k=>cols[k]?(r[cols[k]]!==undefined?r[cols[k]]:''):'';
-    const dataOcStr=parseDate(get('dataOc')),dataFimStr=parseDate(get('dataFim'));
-    let dias=parseFloat((get('dias')||'0').toString().replace(',','.'))||0;
-    dias=Math.round(dias);
-    if(!dias&&dataOcStr&&dataFimStr) dias=Math.max(0,Math.round((new Date(dataFimStr)-new Date(dataOcStr))/86400000));
-    return{
-      id:    get('id')||`FAL-${String(i+1).padStart(3,'0')}`,
-      usina: get('usina')||'Não informado',
-      inv:   get('inv')||'—',
-      dataOc:dataOcStr||'—',
-      causa: get('causa')||'Não informado',
-      medida:get('medida')||'—',
-      status:get('status')||'Não informado',
-      dataFim:dataFimStr||'—',
-      fab:   get('fab')||'Não informado',
-      tipo:  get('tipo')||'Campo',
-      inop:  parseInop(get('inop')),
-      dias:  dias,
+  DATA = rows.map((r, i) => {
+    const get = k => cols[k] ? (r[cols[k]] !== undefined ? r[cols[k]].toString().trim() : '') : '';
+    return {
+      id: get('id') || `FT-${String(i+1).padStart(3,'0')}`,
+      usina: get('usina') || 'Não Informado',
+      inv: get('inv') || '—',
+      dataOc: get('dataOc') || '—',
+      causa: get('causa') || 'Não Informado',
+      medida: get('medida') || '—',
+      status: get('status') || 'Aberto',
+      dataFim: get('dataFim') || '—',
+      fab: currentTab === 'situacao' ? (get('fab') || 'Não Informado') : 'N/A',
+      tipo: get('tipo') || 'Corretiva',
+      inop: currentTab === 'situacao' ? (parseFloat(get('inop')) || 0) : 0,
+      dias: Math.round(parseFloat(get('dias'))) || 0
     };
-  }).filter(r=>r.usina!=='Não informado'||r.inv!=='—');
-  if(!DATA.length){showStatus('error','Nenhuma linha válida encontrada.');return;}
-  const usinas=[...new Set(DATA.map(r=>r.usina))];
-  usinas.forEach((u,i)=>USINA_COLORS[u]=PALETTE[i%PALETTE.length]);
-  filters={usina:'Todos',fab:'Todos',status:'Todos'};page=0;
-  document.getElementById('empty-screen').style.display='none';
-  document.getElementById('dashboard-screen').style.display='block';
-  document.getElementById('btn-export').disabled=false;
-  const now=new Date().toLocaleString('pt-BR');
-  document.getElementById('topbar-sub').textContent=`${DATA.length} registros · ${usinas.length} usinas · ${source==='Google Sheets'?'🟢 Sheets':'📁 Local'} · ${now}`;
-  document.getElementById('sidebar-footer').textContent=`${usinas.length} usinas · ${DATA.length} falhas`;
-  showStatus('ok',`✓ ${DATA.length} registros carregados${source==='Google Sheets'?' do Google Sheets':` de "${source}"`}.`);
+  }).filter(r => r.usina !== 'Não Informado');
+
+  const usinas = [...new Set(DATA.map(r => r.usina))];
+  usinas.forEach((u, i) => USINA_COLORS[u] = PALETTE[i % PALETTE.length]);
+  filters = { usina: 'Todos', fab: 'Todos', status: 'Todos' }; page = 0;
+
+  document.getElementById('empty-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+  
+  // Ajustes de tela condicional por aba
+  if (currentTab === 'chamados') {
+    document.getElementById('filter-fab-row').style.display = 'none';
+    document.getElementById('extra-charts-row').style.display = 'none';
+    document.getElementById('gantt-card-row').style.display = 'none';
+    document.getElementById('title-chart-causas').textContent = 'Tipos de Falhas/Sintomas';
+    document.getElementById('title-chart-usinas').textContent = 'Chamados por Usina';
+    document.getElementById('table-title-lbl').textContent = 'Histórico do Controle de Chamados';
+  } else {
+    document.getElementById('filter-fab-row').style.display = 'flex';
+    document.getElementById('extra-charts-row').style.display = 'grid';
+    document.getElementById('gantt-card-row').style.display = 'block';
+    document.getElementById('title-chart-causas').textContent = 'Causas de Falha';
+    document.getElementById('title-chart-usinas').textContent = 'Falhas por Usina';
+    document.getElementById('table-title-lbl').textContent = 'Detalhes Operacionais';
+  }
+
+  document.getElementById('topbar-sub').textContent = `${DATA.length} registros mapeados · ${usinas.length} usinas ativas · Base Sincronizada`;
+  showStatus('ok', `✓ ${DATA.length} registros processados com sucesso.`);
   updatePublishBtn();
+  buildTableHeader();
   render();
 }
 
-function showStatus(type,msg){
-  const el=document.getElementById('status-msg');
-  el.style.display='block';
-  const c=type==='ok'?{bg:'rgba(63,185,80,.1)',b:'rgba(63,185,80,.3)',t:'#3fb950'}
-          :type==='error'?{bg:'rgba(248,81,73,.1)',b:'rgba(248,81,73,.3)',t:'#f85149'}
-          :{bg:'rgba(210,153,34,.1)',b:'rgba(210,153,34,.3)',t:'#d29922'};
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:${c.bg};border:1px solid ${c.b};border-radius:6px;font-size:12px;color:${c.t}">${msg}</div>`;
-  if(type==='ok')setTimeout(()=>{el.style.display='none';},4000);
+function buildTableHeader() {
+  const thead = document.getElementById('table-thead');
+  if (currentTab === 'situacao') {
+    thead.innerHTML = `<tr>
+      <th style="width:68px">ID</th><th style="width:105px">Usina</th><th style="width:62px">Inv.</th>
+      <th style="width:88px">Ocorrência</th><th style="width:140px">Causa</th><th style="width:110px">Medida</th>
+      <th style="width:65px">Inoper.</th><th style="width:55px">Dias</th><th style="width:85px">Status</th><th style="width:72px">Fabricante</th>
+    </tr>`;
+  } else {
+    thead.innerHTML = `<tr>
+      <th style="width:80px">Chamado</th><th style="width:120px">Usina</th><th style="width:80px">Inv.</th>
+      <th style="width:90px">Abertura</th><th style="width:180px">Sintoma / Diagnóstico</th><th style="width:180px">Ação de Reparo</th>
+      <th style="width:60px">Dias</th><th style="width:90px">Status</th><th style="width:80px">Tipo</th>
+    </tr>`;
+  }
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
-  loadConfig();
-  document.body.addEventListener('dragover',e=>e.preventDefault());
-  document.body.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f],value:''}});});
-});
+function renderTable(data) {
+  const start = page * PAGE_SIZE, slice = data.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('table-body'), empty = document.getElementById('empty-state');
+  document.getElementById('table-count').textContent = `${data.length} registros`;
+  
+  if (!data.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = slice.map(r => {
+    const badge = r.status.toLowerCase().includes('conclu') || r.status.toLowerCase().includes('fechad')
+      ? '<span class="badge badge-green">✓ Finalizado</span>'
+      : '<span class="badge badge-red">● Ativo</span>';
+    
+    if (currentTab === 'situacao') {
+      const cls = r.dias >= 25 ? 'row-high' : r.dias >= 15 ? 'row-med' : '';
+      return `<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td>${r.usina}</td><td>${r.inv}</td><td>${r.dataOc}</td><td>${r.causa}</td><td>${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td>${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
+    } else {
+      return `<tr><td><span class="id-chip">${r.id}</span></td><td>${r.usina}</td><td>${r.inv}</td><td>${r.dataOc}</td><td>${r.causa}</td><td>${r.medida}</td><td>${r.dias}d</td><td>${badge}</td><td>${r.tipo}</td></tr>`;
+    }
+  }).join('');
+  
+  const end = Math.min(start + PAGE_SIZE, data.length);
+  document.getElementById('pager-info').textContent = `${start + 1}–${end} de ${data.length}`;
+  document.getElementById('btn-prev').disabled = page === 0;
+  document.getElementById('btn-next').disabled = end >= data.length;
+}
+
+function filtered(){
+  return DATA.filter(r => {
+    if(filters.usina !== 'Todos' && r.usina !== filters.usina) return false;
+    if(currentTab === 'situacao' && filters.fab !== 'Todos' && r.fab !== filters.fab) return false;
+    if(filters.status !== 'Todos' && r.status !== filters.status) return false;
+    return true;
+  });
+}
+function setFilter(k,v){ filters[k]=v; page=0; render(); }
+function changePage(d){ const data=filtered(); page=Math.max(0,Math.min(Math.ceil(data.length/PAGE_SIZE)-1,page+d)); renderTable(data); }
+
+function renderKPIs(data) {
+  const total = data.length;
+  const abertos = data.filter(r => !r.status.toLowerCase().includes('conclu') && !r.status.toLowerCase().includes('fechad')).length;
+  const concluidores = total - abertos;
+  
+  if (currentTab === 'situacao') {
+    const dias = data.reduce((s, r) => s + r.dias, 0);
+    const mttr = total > 0 ? (dias / total).toFixed(1) : 0;
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Ocorrências Totais</div><div class="kpi-value">${total}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Indisponibilidade Acumulada</div><div class="kpi-value">${dias}d</div></div>
+      <div class="kpi red"><div class="kpi-label">MTTR Médio</div><div class="kpi-value">${mttr}d</div></div>
+      <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${concluidores}</div></div>`;
+  } else {
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Total Chamados</div><div class="kpi-value">${total}</div></div>
+      <div class="kpi red"><div class="kpi-label">Chamados em Aberto</div><div class="kpi-value">${abertos}</div></div>
+      <div class="kpi green"><div class="kpi-label">Chamados Fechados</div><div class="kpi-value">${concluidores}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Eficiência de Resolução</div><div class="kpi-value">${total > 0 ? Math.round((concluidores/total)*100) : 0}%</div></div>`;
+  }
+}
+
+function render(){
+  const data = filtered();
+  renderPills('f-usina', uniq(DATA, 'usina'), 'usina');
+  if(currentTab === 'situacao') renderPills('f-fab', uniq(DATA, 'fab'), 'fab');
+  renderPills('f-status', ['Todos', ...new Set(DATA.map(r => r.status))], 'status');
+  
+  renderKPIs(data);
+  renderBarChart('chart-causas', data, 'causa', () => '#388bfd');
+  renderBarChart('chart-usinas', data, 'usina', u => USINA_COLORS[u] || '#388bfd');
+  
+  if (currentTab === 'situacao') {
+    renderMTTR(data); renderTipo(data); renderGantt(data);
+  }
+  renderTable(data);
+}
 
 function uniq(arr,k){return['Todos',...new Set(arr.map(r=>r[k]))];}
-function filtered(){return DATA.filter(r=>{
-  if(filters.usina!=='Todos'&&r.usina!==filters.usina)return false;
-  if(filters.fab!=='Todos'&&r.fab!==filters.fab)return false;
-  if(filters.status!=='Todos'&&r.status!==filters.status)return false;
-  return true;
-});}
-function setFilter(k,v){filters[k]=v;page=0;render();}
-
-function renderPills(id,vals,key){
-  document.getElementById(id).innerHTML=vals.map(v=>`<button class="pill${filters[key]===v?' active':''}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`).join('');
-}
-function renderKPIs(data){
-  const total=data.length,invs=new Set(data.map(r=>r.inv)).size;
-  const dias=data.reduce((s,r)=>s+r.dias,0);
-  const open=data.filter(r=>!r.status.toLowerCase().includes('conclu')).length;
-  const done=total-open,mttr=total>0?(dias/total).toFixed(1):0;
-  document.getElementById('kpi-row').innerHTML=`
-    <div class="kpi blue"><div class="kpi-label">Total de ocorrências</div><div class="kpi-value">${total}</div><div class="kpi-meta">${invs} inversores afetados</div></div>
-    <div class="kpi amber"><div class="kpi-label">Tempo inoperante</div><div class="kpi-value">${dias}</div><div class="kpi-meta">dias acumulados</div></div>
-    <div class="kpi red"><div class="kpi-label">MTTR médio</div><div class="kpi-value">${mttr}</div><div class="kpi-meta">dias por ocorrência</div></div>
-    <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${done}</div><div class="kpi-meta">${open>0?open+' em aberto':'todos resolvidos'}</div></div>`;
-}
-function renderAlert(data){
-  const box=document.getElementById('alert-box');
-  const causes={};data.forEach(r=>causes[r.causa]=(causes[r.causa]||0)+1);
-  const top=Object.entries(causes).sort((a,b)=>b[1]-a[1])[0];
-  if(top&&top[1]/data.length>=0.6){
-    box.style.display='flex';box.className='alert-banner alert-red';
-    box.innerHTML=`<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong style="color:var(--red)">Padrão crítico:</strong> ${Math.round(top[1]/data.length*100)}% das ocorrências são causadas por <strong style="color:var(--red)">${top[0]}</strong>.</div>`;
-  } else { box.style.display='none'; }
-}
 function renderBarChart(id,data,groupKey,colorFn){
   const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const max=sorted[0]?sorted[0][1]:1;
   const el=document.getElementById(id);
-  if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3)">Sem registros</div>';return;}
   el.innerHTML=sorted.map(([label,n])=>{
     const pct=Math.round((n/max)*100);
-    return`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn?colorFn(label):'#388bfd'}">${n}</div></div><div class="bar-count">${n}</div></div>`;
+    return`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(label)}">${n}</div></div></div>`;
   }).join('');
 }
 function renderMTTR(data){
-  const sum={},cnt={};
-  data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
+  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
   const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);
   const max=rows[0]?rows[0][1]:1;
-  const el=document.getElementById('chart-mttr');
-  if(!rows.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
-  el.innerHTML=rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl" title="${u}">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((avg/max)*100)}%;background:${USINA_COLORS[u]||'#388bfd'}">${avg.toFixed(1)}d</div></div></div>`).join('');
+  document.getElementById('chart-mttr').innerHTML=rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round((avg/max)*100)}%;background:${USINA_COLORS[u]}">${avg.toFixed(1)}d</div></div></div>`).join('');
 }
 function renderTipo(data){
   const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
   const total=data.length;
-  const colors=['#388bfd','#3fb950','#d29922','#a371f7','#f85149'];
-  const keys=Object.keys(counts);
-  const el=document.getElementById('chart-tipo');
-  if(!total){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
-  const cx=60,cy=60,r=50,ir=30;let angle=-Math.PI/2;
-  const arcs=keys.map((k,i)=>{
-    const frac=counts[k]/total,da=frac*2*Math.PI;
-    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
-    angle+=da;
-    const x2=cx+r*Math.cos(angle),y2=cy+r*Math.sin(angle);
-    const x3=cx+ir*Math.cos(angle),y3=cy+ir*Math.sin(angle);
-    const x4=cx+ir*Math.cos(angle-da),y4=cy+ir*Math.sin(angle-da);
-    const lg=frac>0.5?1:0;
-    return{k,n:counts[k],color:colors[i%colors.length],
-      path:`M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${ir},${ir} 0 ${lg},0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`};
-  });
-  el.innerHTML=`<div class="donut-wrap"><svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${arcs.map(a=>`<path d="${a.path}" fill="${a.color}"/>`).join('')}<text x="60" y="56" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="700">${total}</text><text x="60" y="69" text-anchor="middle" fill="#6e7681" font-size="10">eventos</text></svg><div class="donut-legend">${keys.map((k,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[i%colors.length]}"></div><span>${k}</span><span class="legend-val">${counts[k]}</span></div>`).join('')}</div></div>`;
+  document.getElementById('chart-tipo').innerHTML=`<div style="padding:10px; font-size:13px">${Object.entries(counts).map(([k,v])=>`<div><strong>${k}:</strong> ${v} eventos (${((v/total)*100).toFixed(0)}%)</div>`).join('')}</div>`;
 }
 function renderGantt(data){
-  const el=document.getElementById('gantt-chart');
-  const valid=data.filter(r=>r.dataOc!=='—'&&r.dataFim!=='—');
-  if(!valid.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados com datas completas</div>';return;}
-  const dates=valid.flatMap(r=>[new Date(r.dataOc),new Date(r.dataFim)]);
-  const minD=new Date(Math.min(...dates)),maxD=new Date(Math.max(...dates));
-  const totalMs=maxD-minD||1;
-  const months=[];let cur=new Date(minD.getFullYear(),minD.getMonth(),1);
-  while(cur<=maxD){months.push(cur.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
-  document.getElementById('gantt-range').textContent=`${minD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} — ${maxD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
-  const sorted=[...valid].sort((a,b)=>a.dataOc.localeCompare(b.dataOc));
-  el.innerHTML=`<div class="gantt-row" style="margin-bottom:8px"><div class="gantt-lbl"></div><div style="flex:1;display:flex">${months.map(m=>`<div style="flex:1;font-size:10px;color:var(--text3);border-left:1px solid var(--border);padding-left:4px">${m}</div>`).join('')}</div></div>
-  ${sorted.map(r=>{const s=new Date(r.dataOc),e=new Date(r.dataFim);const left=((s-minD)/totalMs*100).toFixed(2);const width=Math.max(((e-s)/totalMs*100).toFixed(2),0.5);return`<div class="gantt-row"><div class="gantt-lbl">${r.id}</div><div class="gantt-track"><div class="gantt-bar" style="left:${left}%;width:${width}%;background:${USINA_COLORS[r.usina]||'#388bfd'};opacity:.85" title="${r.usina} · ${r.inv} · ${r.dias}d">${r.inv}</div></div></div>`;}).join('')}
-  <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:10px">${Object.entries(USINA_COLORS).map(([u,c])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;background:${c};border-radius:2px;display:inline-block"></span>${u}</div>`).join('')}</div>`;
+  document.getElementById('gantt-chart').innerHTML='<div style="color:var(--text3); font-size:12px; padding:10px;">Linha do tempo disponível na aba de Situação Geral.</div>';
 }
-function renderTable(data){
-  const start=page*PAGE_SIZE,slice=data.slice(start,start+PAGE_SIZE);
-  const tbody=document.getElementById('table-body'),empty=document.getElementById('empty-state');
-  document.getElementById('table-count').textContent=`${data.length} registros`;
-  if(!data.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('pager-info').textContent='';document.getElementById('btn-prev').disabled=true;document.getElementById('btn-next').disabled=true;return;}
-  empty.style.display='none';
-  tbody.innerHTML=slice.map(r=>{
-    const cls=r.dias>=25?'row-high':r.dias>=15?'row-med':'';
-    const badge=r.status.toLowerCase().includes('conclu')?'<span class="badge badge-green">✓ Concluído</span>':'<span class="badge badge-red">● Em aberto</span>';
-    return`<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td title="${r.usina}"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td style="font-weight:600;color:${r.dias>=25?'var(--red)':r.dias>=15?'var(--amber)':'var(--text)'}">${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
-  }).join('');
-  const end=Math.min(start+PAGE_SIZE,data.length);
-  document.getElementById('pager-info').textContent=`${start+1}–${end} de ${data.length}`;
-  document.getElementById('btn-prev').disabled=page===0;
-  document.getElementById('btn-next').disabled=end>=data.length;
+function showStatus(type,msg){
+  const el=document.getElementById('status-msg'); el.style.display='block';
+  el.innerHTML=`<div style="padding:10px; background:rgba(63,185,80,.1); border:1px solid rgba(63,185,80,.3); border-radius:6px; font-size:12px; color:#3fb950">${msg}</div>`;
+  setTimeout(()=>{el.style.display='none';},4000);
 }
-function changePage(d){const data=filtered();const max=Math.ceil(data.length/PAGE_SIZE)-1;page=Math.max(0,Math.min(max,page+d));renderTable(data);}
-function render(){
-  const data=filtered();
-  renderPills('f-usina',uniq(DATA,'usina'),'usina');
-  renderPills('f-fab',uniq(DATA,'fab'),'fab');
-  renderPills('f-status',['Todos',...new Set(DATA.map(r=>r.status))],'status');
-  renderKPIs(data);renderAlert(data);
-  renderBarChart('chart-causas',data,'causa',()=>'#388bfd');
-  renderBarChart('chart-usinas',data,'usina',u=>USINA_COLORS[u]||'#388bfd');
-  renderMTTR(data);renderTipo(data);renderGantt(data);renderTable(data);
-}
-function exportCSV(){
-  const data=filtered();
-  const cols=['ID','Usina','Inversor','Data Ocorrência','Causa','Medida','Inoperância %','Dias','Status','Fabricante'];
-  const rows=data.map(r=>[r.id,r.usina,r.inv,r.dataOc,r.causa,r.medida,(r.inop*100).toFixed(0)+'%',r.dias,r.status,r.fab]);
-  const csv=[cols,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));a.download='falhas_inversores.csv';a.click();
-}
+function loadConfig(){} function updatePublishBtn(){} openPublishModal(){} openConfigModal(){} closeConfigModal(){} closePublishModal(){} saveConfig(){} publishToGitHub(){} exportCSV(){}
 </script>
 </body>
 </html>
