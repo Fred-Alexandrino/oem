@@ -4,36 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Sênior - Controle de Inversores</title>
-    <!-- Tailwind CSS para Estilização Rápida e Profissional -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js para Gráficos -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome para Ícones -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PapaParse para ler CSV do Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Fundo cinza claro corporativo */
+            background-color: #f3f4f6;
         }
-        /* Custom Scrollbar para a tabela */
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .table-container::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-            border-radius: 4px;
-        }
-        .table-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
@@ -46,23 +36,25 @@
 </head>
 <body class="text-slate-800">
 
-    <!-- Navbar / Header -->
     <header class="bg-slate-900 text-white shadow-md">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-solar-panel text-blue-400 text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-wide">O&M Dashboard <span class="text-slate-400 font-normal text-sm ml-2">| Controle e Performance de Inversores</span></h1>
+                <h1 class="text-xl font-bold tracking-wide">O&M Dashboard <span class="text-slate-400 font-normal text-sm ml-2">| Controle e Performance</span></h1>
             </div>
-            <div class="text-sm font-medium text-slate-300">
-                <i class="fa-regular fa-clock mr-1"></i> Atualizado: <span id="current-date"></span>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm font-medium text-slate-300">
+                    <i class="fa-regular fa-clock mr-1"></i> Atualizado: <span id="current-date"></span>
+                </div>
+                <button id="btn-sync" onclick="fetchGoogleSheetsData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
+                    <i class="fa-solid fa-rotate mr-2"></i> Atualizar Dados
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="container mx-auto px-6 py-8">
         
-        <!-- Painel de Filtros -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center text-slate-600 font-semibold w-full md:w-auto">
@@ -70,49 +62,32 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-3/4">
-                    <!-- Filtro Usina -->
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">Usina</label>
                         <select id="filter-usina" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
                             <option value="Todas">Todas as Usinas</option>
-                            <option value="Ibaté I">Ibaté I</option>
-                            <option value="Ibaté II">Ibaté II</option>
-                            <option value="Boa Esperança A">Boa Esperança A</option>
-                            <option value="Boa Esperança B">Boa Esperança B</option>
-                            <option value="Nobres">Nobres</option>
+                            <!-- Opções populadas dinamicamente -->
                         </select>
                     </div>
-                    
-                    <!-- Filtro Status -->
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">Status Operacional</label>
                         <select id="filter-status" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
                             <option value="Todos">Todos os Status</option>
-                            <option value="Operando">Operando (OK)</option>
-                            <option value="Em aberto">Em aberto</option>
-                            <option value="RMA Aprovado">RMA Aprovado</option>
-                            <option value="Concluído">Concluído (Histórico)</option>
+                            <!-- Opções populadas dinamicamente -->
                         </select>
                     </div>
-
-                    <!-- Filtro Fabricante -->
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">Fabricante</label>
                         <select id="filter-fabricante" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
                             <option value="Todos">Todos os Fabricantes</option>
-                            <option value="Sungrow">Sungrow</option>
-                            <option value="Huawei">Huawei</option>
-                            <option value="SMA">SMA</option>
-                            <option value="Growatt">Growatt</option>
+                            <!-- Opções populadas dinamicamente -->
                         </select>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- KPIs (Key Performance Indicators) -->
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- KPI 1 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
                 <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
                     <i class="fa-solid fa-server text-xl"></i>
@@ -123,7 +98,6 @@
                 </div>
             </div>
             
-            <!-- KPI 2 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
                 <div class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
                     <i class="fa-solid fa-check-circle text-xl"></i>
@@ -134,18 +108,16 @@
                 </div>
             </div>
 
-            <!-- KPI 3 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
                 <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
                     <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Inversores Inativos / Falha</p>
+                    <p class="text-sm font-medium text-slate-500">Inativos / Em Falha</p>
                     <p class="text-2xl font-bold text-slate-800" id="kpi-falhas">0</p>
                 </div>
             </div>
 
-            <!-- KPI 4 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
                 <div class="p-3 rounded-full bg-amber-100 text-amber-600 mr-4">
                     <i class="fa-solid fa-stopwatch text-xl"></i>
@@ -157,9 +129,7 @@
             </div>
         </section>
 
-        <!-- Gráficos -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Gráfico de Status por Usina -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Status de Operação por Usina</h3>
                 <div class="relative h-72">
@@ -167,16 +137,14 @@
                 </div>
             </div>
 
-            <!-- Gráfico de Causas Raiz -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Distribuição de Causa Raiz (Gargalos)</h3>
+                <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Distribuição de Causa Raiz</h3>
                 <div class="relative h-72 flex justify-center">
                     <canvas id="chart-causas"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- Quadro Geral (Data Table) -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                 <h3 class="text-lg font-semibold text-slate-800"><i class="fa-solid fa-table-list mr-2 text-slate-500"></i> Quadro Geral de Ativos</h3>
@@ -203,71 +171,100 @@
     </main>
 
     <script>
-        // 1. DADOS SIMULADOS (Baseados no contexto da planilha enviada e expandidos para um cenário real)
-        const rawData = [
-            // Operando perfeitamente (para compor a disponibilidade)
-            { id: 'INV-IB1-01', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-IB1-02', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-IB1-03', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-IB2-01', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-IB2-02', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-BEA-01', usina: 'Boa Esperança A', fabricante: 'SMA', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-BEB-01', usina: 'Boa Esperança B', fabricante: 'SMA', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-NOB-01', usina: 'Nobres', fabricante: 'Growatt', status: 'Operando', causa: 'N/A', tempo: 0 },
-            { id: 'INV-NOB-02', usina: 'Nobres', fabricante: 'Growatt', status: 'Operando', causa: 'N/A', tempo: 0 },
-            
-            // Histórico de Ocorrências e Falhas Atuais (Dados extraídos da solicitação anterior)
-            { id: 'INV-IB1-04', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Concluído', causa: 'Furto de cabos', tempo: 26 },
-            { id: 'INV-IB1-05', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Concluído', causa: 'Furto de cabos', tempo: 25 },
-            { id: 'INV-IB1-06', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Concluído', causa: 'Furto de cabos', tempo: 24 },
-            { id: 'INV-IB2-03', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 19 },
-            { id: 'INV-IB2-04', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 21 },
-            { id: 'INV-IB2-05', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 31 },
-            { id: 'INV-IB2-06', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 31 },
-            { id: 'INV-IB2-07', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 18 },
-            { id: 'INV-IB2-08', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 21 },
-            { id: 'INV-IB2-09', usina: 'Ibaté II', fabricante: 'Huawei', status: 'Concluído', causa: 'Furto de cabos', tempo: 19 },
-            { id: 'INV-BEA-02', usina: 'Boa Esperança A', fabricante: 'SMA', status: 'Concluído', causa: 'Furto de cabos', tempo: 2 },
-            { id: 'INV-BEA-03', usina: 'Boa Esperança A', fabricante: 'SMA', status: 'Concluído', causa: 'Furto de cabos', tempo: 2 },
-            { id: 'INV-BEA-04', usina: 'Boa Esperança A', fabricante: 'SMA', status: 'Concluído', causa: 'Furto de cabos', tempo: 7 },
-            { id: 'INV-BEB-02', usina: 'Boa Esperança B', fabricante: 'SMA', status: 'Concluído', causa: 'Furto de cabos', tempo: 5 },
-            { id: 'INV-BEB-03', usina: 'Boa Esperança B', fabricante: 'SMA', status: 'Concluído', causa: 'Furto de cabos', tempo: 5 },
-            
-            // Falhas ativas
-            { id: 'INV-IB1-07', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Em aberto', causa: 'Falha Crítica', tempo: 12 },
-            { id: 'INV-IB1-08', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'RMA Aprovado', causa: 'Falha Crítica', tempo: 45 },
-            { id: 'INV-IB2-10', usina: 'Ibaté II', fabricante: 'Huawei', status: 'RMA Aprovado', causa: 'Falha Crítica', tempo: 38 },
-            { id: 'INV-NOB-03', usina: 'Nobres', fabricante: 'Growatt', status: 'Em aberto', causa: 'Baixa Isolação', tempo: 8 },
-            { id: 'INV-IB1-09', usina: 'Ibaté I', fabricante: 'Sungrow', status: 'Em aberto', causa: 'Falha Crítica', tempo: 4 }
-        ];
-
-        // 2. VARIÁVEIS DE CONTROLE DOS GRÁFICOS
+        // URL de exportação CSV da sua planilha pública (com base no link fornecido)
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M/gviz/tq?tqx=out:csv&gid=888111222';
+        
+        let rawData = [];
         let chartUsinaStatusInstance = null;
         let chartCausasInstance = null;
 
-        // 3. FUNÇÕES DE UTILIDADE E RENDERIZAÇÃO
-        
-        // Define as cores dos status para padronização visual
-        function getStatusColor(status) {
-            switch(status) {
-                case 'Operando': return { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' };
-                case 'Em aberto': return { bg: 'bg-red-100', text: 'text-red-700', hex: '#ef4444' };
-                case 'RMA Aprovado': return { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' };
-                case 'Concluído': return { bg: 'bg-slate-200', text: 'text-slate-600', hex: '#94a3b8' };
-                default: return { bg: 'bg-gray-100', text: 'text-gray-700', hex: '#6b7280' };
-            }
-        }
-
-        // Atualiza a data no header
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR');
 
-        // Função Principal de Atualização do Dashboard
+        // Função para buscar dados da planilha
+        function fetchGoogleSheetsData() {
+            const btn = document.getElementById('btn-sync');
+            const originalHTML = '<i class="fa-solid fa-rotate mr-2"></i> Atualizar Dados';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sincronizando...';
+            btn.disabled = true;
+
+            Papa.parse(sheetUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const data = results.data;
+                    
+                    // Mapeamento flexível das colunas da planilha para o objeto do dashboard
+                    rawData = data.map(row => {
+                        // Tenta localizar a coluna pelo nome provável
+                        const id = row['ID'] || row['ID Equipamento'] || row['Equipamento'] || row['Inversor'] || 'N/A';
+                        const usina = row['Usina'] || row['Local'] || row['Planta'] || 'N/A';
+                        const fabricante = row['Fabricante'] || row['Marca'] || 'N/A';
+                        const status = row['Status'] || row['Estado'] || 'Operando';
+                        const causa = row['Causa Raiz'] || row['Causa'] || row['Motivo'] || 'N/A';
+                        const tempoStr = row['Dias Inativo'] || row['Tempo'] || row['Dias'] || '0';
+                        const tempo = parseInt(tempoStr.replace(/\D/g, ''), 10) || 0;
+
+                        return { id, usina, fabricante, status, causa, tempo };
+                    }).filter(item => item.id !== 'N/A'); // Remove linhas vazias
+
+                    populateFilters();
+                    updateDashboard();
+
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Sincronizado';
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }, 2500);
+                },
+                error: function(err) {
+                    console.error('Erro ao ler a planilha:', err);
+                    // Mock data de fallback caso haja erro de CORS/Permissão na planilha
+                    rawData = [{ id: "Erro de Leitura", usina: "Verifique as Permissões", fabricante: "N/A", status: "Em aberto", causa: "Falha na Planilha", tempo: 0 }];
+                    populateFilters();
+                    updateDashboard();
+                    
+                    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Erro';
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }, 2500);
+                }
+            });
+        }
+
+        // Popula as opções dos filtros com base nos dados reais
+        function populateFilters() {
+            const usinas = [...new Set(rawData.map(d => d.usina))].sort();
+            const statusList = [...new Set(rawData.map(d => d.status))].sort();
+            const fabricantes = [...new Set(rawData.map(d => d.fabricante))].sort();
+
+            const createOptions = (arr, defaultOption) => `<option value="Todos">${defaultOption}</option>` + arr.map(item => `<option value="${item}">${item}</option>`).join('');
+
+            document.getElementById('filter-usina').innerHTML = createOptions(usinas, 'Todas as Usinas');
+            document.getElementById('filter-status').innerHTML = createOptions(statusList, 'Todos os Status');
+            document.getElementById('filter-fabricante').innerHTML = createOptions(fabricantes, 'Todos os Fabricantes');
+            
+            // Corrige o valor 'Todos' vs 'Todas' para usina
+            document.getElementById('filter-usina').options[0].value = 'Todas';
+        }
+
+        function getStatusColor(status) {
+            const st = status.toLowerCase();
+            if(st.includes('operando') || st.includes('ok')) return { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' };
+            if(st.includes('aberto') || st.includes('falha')) return { bg: 'bg-red-100', text: 'text-red-700', hex: '#ef4444' };
+            if(st.includes('rma') || st.includes('análise')) return { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' };
+            if(st.includes('concluído') || st.includes('resolvido')) return { bg: 'bg-slate-200', text: 'text-slate-600', hex: '#94a3b8' };
+            return { bg: 'bg-gray-100', text: 'text-gray-700', hex: '#6b7280' };
+        }
+
         function updateDashboard() {
+            if (rawData.length === 0) return;
+
             const filterUsina = document.getElementById('filter-usina').value;
             const filterStatus = document.getElementById('filter-status').value;
             const filterFabricante = document.getElementById('filter-fabricante').value;
 
-            // Filtragem dos dados
             const filteredData = rawData.filter(item => {
                 const matchUsina = filterUsina === 'Todas' || item.usina === filterUsina;
                 const matchStatus = filterStatus === 'Todos' || item.status === filterStatus;
@@ -280,41 +277,33 @@
             renderCharts(filteredData);
         }
 
-        // Renderiza os Indicadores Superiores
         function renderKPIs(data) {
             const total = data.length;
-            const operando = data.filter(d => d.status === 'Operando').length;
-            const inativos = data.filter(d => ['Em aberto', 'RMA Aprovado'].includes(d.status)).length;
+            const inativos = data.filter(d => {
+                const st = d.status.toLowerCase();
+                return st.includes('aberto') || st.includes('rma') || st.includes('falha');
+            }).length;
             
-            // Cálculo de Disponibilidade (% de operantes em relação ao total atual - desconsiderando 'Concluído' se for uma visão de momento, mas aqui simplificado)
-            const ativosNoMomento = data.filter(d => d.status !== 'Concluído');
+            const ativosNoMomento = data.filter(d => !d.status.toLowerCase().includes('concluído'));
             const dispPercent = ativosNoMomento.length > 0 
-                ? Math.round((ativosNoMomento.filter(d => d.status === 'Operando').length / ativosNoMomento.length) * 100) 
+                ? Math.round(((ativosNoMomento.length - inativos) / ativosNoMomento.length) * 100) 
                 : 0;
 
-            // Cálculo do Tempo Médio (apenas para equipamentos que pararam)
             const comFalha = data.filter(d => d.tempo > 0);
             const mediaTempo = comFalha.length > 0 
                 ? Math.round(comFalha.reduce((acc, curr) => acc + curr.tempo, 0) / comFalha.length) 
                 : 0;
 
             document.getElementById('kpi-total').textContent = total;
-            // Se filtrou apenas concluidos, mostra N/A na disp.
-            document.getElementById('kpi-disponibilidade').textContent = filterStatus === 'Concluído' ? 'N/A' : `${dispPercent}%`;
+            document.getElementById('kpi-disponibilidade').textContent = `${dispPercent}%`;
             document.getElementById('kpi-falhas').textContent = inativos;
             document.getElementById('kpi-tempo').textContent = mediaTempo;
         }
 
-        // Renderiza a Tabela
         function renderTable(data) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             document.getElementById('table-count').textContent = `Mostrando ${data.length} registros`;
-
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
-                return;
-            }
 
             data.forEach(item => {
                 const colors = getStatusColor(item.status);
@@ -324,9 +313,7 @@
                     <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${item.id}</td>
                     <td class="px-6 py-4">${item.usina}</td>
                     <td class="px-6 py-4">${item.fabricante}</td>
-                    <td class="px-6 py-4">
-                        <span class="status-badge ${colors.bg} ${colors.text}">${item.status}</span>
-                    </td>
+                    <td class="px-6 py-4"><span class="status-badge ${colors.bg} ${colors.text}">${item.status}</span></td>
                     <td class="px-6 py-4">${item.causa}</td>
                     <td class="px-6 py-4 text-center font-bold ${item.tempo > 15 ? 'text-red-500' : 'text-slate-600'}">${item.tempo}</td>
                 `;
@@ -334,90 +321,59 @@
             });
         }
 
-        // Renderiza Gráficos usando Chart.js
         function renderCharts(data) {
-            // Prepara dados para o Gráfico de Usina x Status
             const usinas = [...new Set(rawData.map(d => d.usina))];
+            const statusTypes = [...new Set(rawData.map(d => d.status))];
             
-            const countByUsinaStatus = (usina, status) => data.filter(d => d.usina === usina && d.status === status).length;
-
-            const dsOperando = usinas.map(u => countByUsinaStatus(u, 'Operando'));
-            const dsAberto = usinas.map(u => countByUsinaStatus(u, 'Em aberto'));
-            const dsRMA = usinas.map(u => countByUsinaStatus(u, 'RMA Aprovado'));
-            const dsConcluido = usinas.map(u => countByUsinaStatus(u, 'Concluído'));
+            const datasets = statusTypes.map(status => {
+                return {
+                    label: status,
+                    data: usinas.map(u => data.filter(d => d.usina === u && d.status === status).length),
+                    backgroundColor: getStatusColor(status).hex
+                };
+            });
 
             if(chartUsinaStatusInstance) chartUsinaStatusInstance.destroy();
-            
-            const ctxUsina = document.getElementById('chart-usina-status').getContext('2d');
-            chartUsinaStatusInstance = new Chart(ctxUsina, {
+            chartUsinaStatusInstance = new Chart(document.getElementById('chart-usina-status').getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: usinas,
-                    datasets: [
-                        { label: 'Operando', data: dsOperando, backgroundColor: getStatusColor('Operando').hex },
-                        { label: 'Em aberto', data: dsAberto, backgroundColor: getStatusColor('Em aberto').hex },
-                        { label: 'RMA Aprovado', data: dsRMA, backgroundColor: getStatusColor('RMA Aprovado').hex },
-                        { label: 'Concluído', data: dsConcluido, backgroundColor: getStatusColor('Concluído').hex }
-                    ]
-                },
+                data: { labels: usinas, datasets: datasets },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true, grid: { display: false } },
-                        y: { stacked: true, border: { display: false } }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
                 }
             });
 
-            // Prepara dados para Gráfico de Causas (ignora N/A que significa operando)
-            const falhas = data.filter(d => d.causa !== 'N/A');
+            const falhas = data.filter(d => d.causa && d.causa !== 'N/A' && !d.causa.toLowerCase().includes('ok') && !d.causa.toLowerCase().includes('operando'));
             const causasCount = falhas.reduce((acc, curr) => {
                 acc[curr.causa] = (acc[curr.causa] || 0) + 1;
                 return acc;
             }, {});
 
-            const labelsCausas = Object.keys(causasCount);
-            const dataCausas = Object.values(causasCount);
-
             if(chartCausasInstance) chartCausasInstance.destroy();
-
-            const ctxCausas = document.getElementById('chart-causas').getContext('2d');
-            chartCausasInstance = new Chart(ctxCausas, {
+            chartCausasInstance = new Chart(document.getElementById('chart-causas').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: labelsCausas.length ? labelsCausas : ['Nenhuma Falha'],
+                    labels: Object.keys(causasCount).length ? Object.keys(causasCount) : ['Nenhuma Falha'],
                     datasets: [{
-                        data: dataCausas.length ? dataCausas : [1],
-                        backgroundColor: dataCausas.length ? [
-                            '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'
-                        ] : ['#e2e8f0'],
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        data: Object.values(causasCount).length ? Object.values(causasCount) : [1],
+                        backgroundColor: Object.values(causasCount).length ? ['#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'] : ['#e2e8f0'],
+                        borderWidth: 0
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } },
-                        tooltip: { enabled: dataCausas.length > 0 }
-                    }
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } } }
                 }
             });
         }
 
-        // 4. LISTENERS DE EVENTOS
         document.getElementById('filter-usina').addEventListener('change', updateDashboard);
         document.getElementById('filter-status').addEventListener('change', updateDashboard);
         document.getElementById('filter-fabricante').addEventListener('change', updateDashboard);
 
-        // Inicialização
-        window.addEventListener('DOMContentLoaded', updateDashboard);
+        // Dispara a busca no Sheets logo ao carregar a página
+        window.addEventListener('DOMContentLoaded', fetchGoogleSheetsData);
 
     </script>
 </body>
