@@ -1,380 +1,850 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Sênior - Controle de Inversores</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- PapaParse para ler CSV do Google Sheets -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard O&M — Inversores Solares</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;--bg4:#21262d;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.13);
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --blue:#388bfd;--blue-dim:#1f4073;--blue-bg:#0d2241;
+  --green:#3fb950;--green-bg:#0d2818;
+  --amber:#d29922;--amber-bg:#2d1f00;
+  --red:#f85149;--red-bg:#300d0d;
+  --purple:#a371f7;
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:var(--blue-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:15px;height:15px;stroke:var(--blue);stroke-width:2;fill:none}
+.logo-name{font-size:13px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--text3)}
+.sidebar-nav{padding:10px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:1px;transition:background .15s}
+.nav-item svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue)}
+.sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* ── Topbar ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.topbar-left h1{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-left p{font-size:11px;color:var(--text3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
+.btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Botão Sheets — destaque máximo */
+.btn-sheets{background:#1a6134;border-color:#2ea864;color:#fff;font-size:13px;padding:8px 16px;font-weight:600}
+.btn-sheets:hover:not(:disabled){background:#1f7a3e;border-color:#3abb75;color:#fff}
+.btn-sheets:disabled{opacity:.38;cursor:not-allowed}
+.btn-sheets .sheet-icon{width:15px;height:15px;flex-shrink:0}
+
+/* Botão Carregar arquivo */
+.btn-load{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);font-size:12px;padding:7px 13px}
+.btn-load:hover:not(:disabled){background:#1a3f80;color:#fff}
+
+/* Botão Publicar */
+.btn-publish{background:var(--green-bg);border-color:var(--green);color:var(--green);font-size:12px;padding:7px 13px}
+.btn-publish:hover:not(:disabled){background:#0d3a1a;color:#3fb950}
+
+.btn-sep{width:1px;height:26px;background:var(--border2);margin:0 2px;flex-shrink:0}
+
+.content{padding:20px 24px;flex:1}
+
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.blue::before{background:var(--blue)}.kpi.green::before{background:var(--green)}.kpi.amber::before{background:var(--amber)}.kpi.red::before{background:var(--red)}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi.blue .kpi-value{color:var(--blue)}.kpi.green .kpi-value{color:var(--green)}.kpi.amber .kpi-value{color:var(--amber)}.kpi.red .kpi-value{color:var(--red)}
+.kpi-meta{font-size:11px;color:var(--text3)}
+
+/* Filters */
+.filter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.filter-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.filter-group-label{font-size:11px;color:var(--text3);white-space:nowrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.pill:hover{background:var(--bg3);color:var(--text)}
+.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:15px}
+.chart-card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:13px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-lbl{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:17px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:11px;font-weight:600;color:#fff;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bar-count{font-size:11px;color:var(--text3);min-width:16px;text-align:right}
+
+/* Gantt */
+.gantt-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:16px}
+.gantt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.gantt-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.gantt-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.gantt-lbl{font-size:11px;color:var(--text2);width:78px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gantt-track{flex:1;height:18px;background:var(--bg4);border-radius:4px;position:relative;overflow:hidden}
+.gantt-bar{position:absolute;height:100%;border-radius:3px;display:flex;align-items:center;padding:0 5px;font-size:10px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden}
+
+/* Table */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.table-header{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+tr:last-child td{border-bottom:none}
+tr.row-high td{background:rgba(248,81,73,.05)}
+tr.row-med td{background:rgba(210,153,34,.05)}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.id-chip{font-family:monospace;font-size:12px;color:var(--blue);font-weight:600}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:8px 15px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
+.pager-btns{display:flex;gap:5px}
+.pager-btn{padding:3px 9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.pager-btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
+.pager-btn:disabled{opacity:.3;cursor:default}
+
+/* Alert */
+.alert-banner{display:flex;align-items:flex-start;gap:10px;border-radius:var(--radius);padding:11px 15px;margin-bottom:14px;border:1px solid}
+.alert-banner svg{width:15px;height:15px;stroke-width:2;fill:none;flex-shrink:0;margin-top:2px}
+.alert-red{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.25);color:var(--text2)}
+.alert-red svg{stroke:var(--red)}
+
+/* Empty */
+.empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;text-align:center;gap:16px}
+.empty-big svg{width:52px;height:52px;stroke:var(--text3);stroke-width:1.2;fill:none}
+.empty-big h2{font-size:17px;font-weight:600;color:var(--text)}
+.empty-big p{font-size:13px;color:var(--text3);max-width:360px;line-height:1.6}
+.empty-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.empty-state{padding:36px;text-align:center;color:var(--text3);font-size:13px}
+
+/* Donut */
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{display:flex;flex-direction:column;gap:7px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-val{font-weight:600;color:var(--text);margin-left:auto;padding-left:10px}
+
+/* ── Modals ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:460px;max-width:93vw;overflow:hidden}
+.modal-header{padding:20px 22px 14px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.modal-sub{font-size:12px;color:var(--text3);line-height:1.6}
+.modal-body{padding:18px 22px}
+.modal-footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--blue)}
+.field input::placeholder{color:var(--text3)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.field-hint a{color:var(--blue);text-decoration:none}
+.token-step{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border-radius:var(--radius-sm);margin-bottom:7px;font-size:12px;color:var(--text2);line-height:1.5}
+.token-step-num{width:19px;height:19px;border-radius:50%;background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.token-step strong{color:var(--text);font-weight:500}
+.pub-status{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--radius-sm);margin-bottom:13px;font-size:12px;border:1px solid}
+.pub-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3);color:var(--green)}
+.pub-err{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.3);color:var(--red)}
+.pub-info{background:rgba(56,139,253,.1);border-color:rgba(56,139,253,.3);color:var(--blue)}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(13,17,23,.85);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(2px)}
+.loading-overlay p{font-size:14px;color:var(--text2)}
+
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.spinner-lg{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+
+/* Token indicator */
+.tok-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+.tok-ok{background:var(--green)}.tok-no{background:var(--text3)}
+
+/* Sheets badge on button */
+.sheets-logo{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;flex-shrink:0}
+.sheets-logo svg{width:12px;height:12px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+@media(max-width:860px){.sidebar{display:none}.kpi-row{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}.content{padding:12px}.topbar{padding:10px 12px}}
+</style>
 </head>
-<body class="text-slate-800">
+<body>
+<div class="shell">
 
-    <header class="bg-slate-900 text-white shadow-md">
-        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-solar-panel text-blue-400 text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-wide">O&M Dashboard <span class="text-slate-400 font-normal text-sm ml-2">| Controle e Performance</span></h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-sm font-medium text-slate-300">
-                    <i class="fa-regular fa-clock mr-1"></i> Atualizado: <span id="current-date"></span>
-                </div>
-                <button id="btn-sync" onclick="fetchGoogleSheetsData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
-                    <i class="fa-solid fa-rotate mr-2"></i> Atualizar Dados
-                </button>
-            </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+    <div><div class="logo-name">SolarOps</div><div class="logo-sub">O&M Dashboard</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Monitoramento</div>
+    <div class="nav-item active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Visão geral</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Inversores</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Geração</div>
+    <div class="nav-section" style="margin-top:6px">Manutenção</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M22 12h-2M4 12H2M12 4V2M12 22v-2"/></svg>Ordens de serviço</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatórios</div>
+  </nav>
+  <div class="sidebar-footer" id="sidebar-footer">Aguardando dados</div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1>Histórico de Falhas — Inversores</h1>
+      <p id="topbar-sub">Nenhuma fonte de dados carregada</p>
+    </div>
+    <div class="topbar-actions">
+
+      <!-- ★ BOTÃO PRINCIPAL: Atualizar do Google Sheets -->
+      <button class="btn btn-sheets" id="btn-sheets" onclick="fetchFromSheets()">
+        <div class="sheets-logo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect width="24" height="24" rx="3" fill="#0F9D58"/>
+            <rect x="5" y="7" width="14" height="2" rx="1" fill="white"/>
+            <rect x="5" y="11" width="14" height="2" rx="1" fill="white"/>
+            <rect x="5" y="15" width="9" height="2" rx="1" fill="white"/>
+          </svg>
         </div>
-    </header>
+        Atualizar do Google Sheets
+      </button>
 
-    <main class="container mx-auto px-6 py-8">
-        
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center text-slate-600 font-semibold w-full md:w-auto">
-                    <i class="fa-solid fa-filter mr-2"></i> Filtros de Análise:
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-3/4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Usina</label>
-                        <select id="filter-usina" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
-                            <option value="Todas">Todas as Usinas</option>
-                            <!-- Opções populadas dinamicamente -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Status Operacional</label>
-                        <select id="filter-status" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
-                            <option value="Todos">Todos os Status</option>
-                            <!-- Opções populadas dinamicamente -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Fabricante</label>
-                        <select id="filter-fabricante" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-colors">
-                            <option value="Todos">Todos os Fabricantes</option>
-                            <!-- Opções populadas dinamicamente -->
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </section>
+      <div class="btn-sep"></div>
 
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
-                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                    <i class="fa-solid fa-server text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Total de Inversores</p>
-                    <p class="text-2xl font-bold text-slate-800" id="kpi-total">0</p>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
-                <div class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
-                    <i class="fa-solid fa-check-circle text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Disponibilidade Geral</p>
-                    <p class="text-2xl font-bold text-slate-800" id="kpi-disponibilidade">0%</p>
-                </div>
-            </div>
+      <!-- Carregar arquivo local -->
+      <button class="btn btn-load" onclick="document.getElementById('file-input').click()" title="Carregar planilha local .xlsx/.csv">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Carregar arquivo
+      </button>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
-                <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
-                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Inativos / Em Falha</p>
-                    <p class="text-2xl font-bold text-slate-800" id="kpi-falhas">0</p>
-                </div>
-            </div>
+      <!-- Publicar no GitHub -->
+      <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled title="Carregue os dados primeiro">
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        Publicar no GitHub
+      </button>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center">
-                <div class="p-3 rounded-full bg-amber-100 text-amber-600 mr-4">
-                    <i class="fa-solid fa-stopwatch text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Tempo Médio Inativo (Dias)</p>
-                    <p class="text-2xl font-bold text-slate-800" id="kpi-tempo">0</p>
-                </div>
-            </div>
-        </section>
+      <div class="btn-sep"></div>
 
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Status de Operação por Usina</h3>
-                <div class="relative h-72">
-                    <canvas id="chart-usina-status"></canvas>
-                </div>
-            </div>
+      <!-- CSV -->
+      <button class="btn" id="btn-export" onclick="exportCSV()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Distribuição de Causa Raiz</h3>
-                <div class="relative h-72 flex justify-center">
-                    <canvas id="chart-causas"></canvas>
-                </div>
-            </div>
-        </section>
+      <!-- Token config -->
+      <button class="btn" onclick="openConfigModal()" id="btn-cfg" title="Configurar token GitHub">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span id="tok-indicator"><span class="tok-dot tok-no"></span>Token</span>
+      </button>
 
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h3 class="text-lg font-semibold text-slate-800"><i class="fa-solid fa-table-list mr-2 text-slate-500"></i> Quadro Geral de Ativos</h3>
-                <span class="text-xs font-medium bg-slate-200 text-slate-700 py-1 px-3 rounded-full" id="table-count">Mostrando 0 registros</span>
-            </div>
-            <div class="overflow-x-auto table-container max-h-96">
-                <table class="w-full text-sm text-left text-slate-600">
-                    <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 shadow-sm z-10">
-                        <tr>
-                            <th scope="col" class="px-6 py-4">ID Equipamento</th>
-                            <th scope="col" class="px-6 py-4">Usina</th>
-                            <th scope="col" class="px-6 py-4">Fabricante</th>
-                            <th scope="col" class="px-6 py-4">Status</th>
-                            <th scope="col" class="px-6 py-4">Causa Raiz</th>
-                            <th scope="col" class="px-6 py-4 text-center">Dias Inativo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="divide-y divide-slate-100">
-                        <!-- Linhas geradas via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="display:none">
+    </div>
+  </header>
 
-    <script>
-        // URL de exportação CSV da sua planilha pública (com base no link fornecido)
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M/gviz/tq?tqx=out:csv&gid=888111222';
-        
-        let rawData = [];
-        let chartUsinaStatusInstance = null;
-        let chartCausasInstance = null;
+  <div class="content">
+    <div id="status-msg" style="display:none"></div>
 
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR');
+    <!-- Empty state -->
+    <div id="empty-screen" class="empty-big">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <h2>Dashboard O&M — Inversores Solares</h2>
+      <p>Carregue os dados da planilha base do Google Sheets com um clique, ou importe um arquivo local.</p>
+      <div class="empty-actions">
+        <button class="btn btn-sheets" style="font-size:14px;padding:10px 20px" onclick="fetchFromSheets()">
+          <div class="sheets-logo"><svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="3" fill="#0F9D58"/><rect x="5" y="7" width="14" height="2" rx="1" fill="white"/><rect x="5" y="11" width="14" height="2" rx="1" fill="white"/><rect x="5" y="15" width="9" height="2" rx="1" fill="white"/></svg></div>
+          Atualizar do Google Sheets
+        </button>
+        <button class="btn btn-load" style="font-size:13px;padding:9px 16px" onclick="document.getElementById('file-input').click()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Carregar arquivo local
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text3)">Formatos aceitos: Google Sheets · .xlsx · .xls · .csv</p>
+    </div>
 
-        // Função para buscar dados da planilha
-        function fetchGoogleSheetsData() {
-            const btn = document.getElementById('btn-sync');
-            const originalHTML = '<i class="fa-solid fa-rotate mr-2"></i> Atualizar Dados';
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sincronizando...';
-            btn.disabled = true;
+    <!-- Dashboard -->
+    <div id="dashboard-screen" style="display:none">
+      <div id="alert-box" style="display:none"></div>
+      <div class="kpi-row" id="kpi-row"></div>
+      <div class="filter-bar">
+        <div class="filter-group"><span class="filter-group-label">Usina</span><div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Fabricante</span><div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Status</span><div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-card-title">Causas de falha</div><div id="chart-causas"></div></div>
+        <div class="chart-card"><div class="chart-card-title">Falhas por usina</div><div id="chart-usinas"></div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-card-title">MTTR por usina (dias)</div><div id="chart-mttr"></div></div>
+        <div class="chart-card"><div class="chart-card-title">Tipo de correção</div><div id="chart-tipo"></div></div>
+      </div>
+      <div class="gantt-card">
+        <div class="gantt-header">
+          <div class="gantt-title">Linha do tempo de inoperância</div>
+          <span id="gantt-range" style="font-size:11px;color:var(--text3)"></span>
+        </div>
+        <div id="gantt-chart"></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Detalhes operacionais</span>
+          <span style="font-size:12px;color:var(--text3)" id="table-count"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="width:68px">ID</th><th style="width:105px">Usina</th><th style="width:60px">Inv.</th>
+              <th style="width:88px">Ocorrência</th><th style="width:140px">Causa</th><th style="width:110px">Medida</th>
+              <th style="width:64px">Inoper.</th><th style="width:52px">Dias</th><th style="width:85px">Status</th><th style="width:72px">Fabricante</th>
+            </tr></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" class="empty-state" style="display:none">Nenhum registro para os filtros selecionados.</div>
+        <div class="pager">
+          <span id="pager-info"></span>
+          <div class="pager-btns">
+            <button class="pager-btn" id="btn-prev" onclick="changePage(-1)">← Anterior</button>
+            <button class="pager-btn" id="btn-next" onclick="changePage(1)">Próximo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 
-            Papa.parse(sheetUrl, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const data = results.data;
-                    
-                    // Mapeamento flexível das colunas da planilha para o objeto do dashboard
-                    rawData = data.map(row => {
-                        // Tenta localizar a coluna pelo nome provável
-                        const id = row['ID'] || row['ID Equipamento'] || row['Equipamento'] || row['Inversor'] || 'N/A';
-                        const usina = row['Usina'] || row['Local'] || row['Planta'] || 'N/A';
-                        const fabricante = row['Fabricante'] || row['Marca'] || 'N/A';
-                        const status = row['Status'] || row['Estado'] || 'Operando';
-                        const causa = row['Causa Raiz'] || row['Causa'] || row['Motivo'] || 'N/A';
-                        const tempoStr = row['Dias Inativo'] || row['Tempo'] || row['Dias'] || '0';
-                        const tempo = parseInt(tempoStr.replace(/\D/g, ''), 10) || 0;
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay" style="display:none">
+  <div class="spinner-lg"></div>
+  <p id="loading-msg">Buscando dados do Google Sheets...</p>
+</div>
 
-                        return { id, usina, fabricante, status, causa, tempo };
-                    }).filter(item => item.id !== 'N/A'); // Remove linhas vazias
+<!-- MODAL Token GitHub -->
+<div class="modal-overlay" id="modal-config" style="display:none" onclick="if(event.target===this)closeConfigModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Configurar Token do GitHub</div>
+      <div class="modal-sub">Configure uma vez. O token fica salvo apenas neste navegador.</div>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Como gerar o token</div>
+        <div class="token-step"><div class="token-step-num">1</div><div>Acesse <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a></div></div>
+        <div class="token-step"><div class="token-step-num">2</div><div>Note: <strong>dashboard-om</strong> · Expiration: <strong>No expiration</strong></div></div>
+        <div class="token-step"><div class="token-step-num">3</div><div>Marque ✅ <strong>repo</strong> → clique <strong>Generate token</strong></div></div>
+        <div class="token-step"><div class="token-step-num">4</div><div>Copie o token (<code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:11px">ghp_...</code>) e cole abaixo</div></div>
+      </div>
+      <div class="field">
+        <label>Personal Access Token</label>
+        <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <div class="field-hint">⚠ Salve imediatamente — o GitHub não mostra o token novamente.</div>
+      </div>
+      <div style="background:var(--bg4);border-radius:var(--radius-sm);padding:9px 12px;font-size:11px;color:var(--text3);line-height:1.7">
+        📦 Repositório: <strong style="color:var(--text)">Fred-Alexandrino / oem</strong><br>
+        📄 Arquivo: <strong style="color:var(--text)">index.html</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConfigModal()">Cancelar</button>
+      <button class="btn btn-load" onclick="saveConfig()">Salvar token</button>
+    </div>
+  </div>
+</div>
 
-                    populateFilters();
-                    updateDashboard();
+<!-- MODAL Publicar -->
+<div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Publicar no GitHub Pages</div>
+      <div class="modal-sub">O dashboard atualizado será enviado ao repositório. Link público disponível em ~60s.</div>
+    </div>
+    <div class="modal-body">
+      <div id="pub-status-box" style="display:none"></div>
+      <div id="pub-info">
+        <div style="font-size:13px;color:var(--text2);line-height:2;background:var(--bg4);border-radius:var(--radius-sm);padding:11px 14px">
+          <div>📦 <span style="color:var(--text3)">Repositório:</span> <strong style="color:var(--text)">Fred-Alexandrino / oem</strong></div>
+          <div>📊 <span style="color:var(--text3)">Registros:</span> <strong id="pub-records" style="color:var(--text)">—</strong></div>
+          <div>🔗 <span style="color:var(--text3)">Link:</span> <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank" style="color:var(--blue)">Fred-Alexandrino.github.io/oem/</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="pub-cancel-btn" onclick="closePublishModal()">Cancelar</button>
+      <button class="btn btn-publish" id="pub-confirm-btn" onclick="publishToGitHub()" style="background:var(--green);border-color:var(--green);color:#0a1f0a">
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        Publicar agora
+      </button>
+    </div>
+  </div>
+</div>
 
-                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Sincronizado';
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                    }, 2500);
-                },
-                error: function(err) {
-                    console.error('Erro ao ler a planilha:', err);
-                    // Mock data de fallback caso haja erro de CORS/Permissão na planilha
-                    rawData = [{ id: "Erro de Leitura", usina: "Verifique as Permissões", fabricante: "N/A", status: "Em aberto", causa: "Falha na Planilha", tempo: 0 }];
-                    populateFilters();
-                    updateDashboard();
-                    
-                    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Erro';
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                    }, 2500);
-                }
-            });
-        }
+<script>
+// ═══════════════════════════════════════════
+// Google Sheets — URL fixa da planilha base
+// ═══════════════════════════════════════════
+const SHEETS_ID  = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
+const SHEETS_GID = '1539484372';
+const SHEETS_CSV = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=csv&gid=${SHEETS_GID}`;
 
-        // Popula as opções dos filtros com base nos dados reais
-        function populateFilters() {
-            const usinas = [...new Set(rawData.map(d => d.usina))].sort();
-            const statusList = [...new Set(rawData.map(d => d.status))].sort();
-            const fabricantes = [...new Set(rawData.map(d => d.fabricante))].sort();
+async function fetchFromSheets() {
+  showLoading('Buscando dados do Google Sheets...');
+  try {
+    const res = await fetch(SHEETS_CSV + '&t=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().length < 10) throw new Error('Planilha vazia ou sem dados');
+    hideLoading();
+    parseCSVAndRender(text, 'Google Sheets');
+  } catch(e) {
+    hideLoading();
+    showStatus('error', `✗ Erro ao acessar o Google Sheets: ${e.message}. Verifique se a planilha está pública (compartilhada com "qualquer pessoa com o link").`);
+  }
+}
 
-            const createOptions = (arr, defaultOption) => `<option value="Todos">${defaultOption}</option>` + arr.map(item => `<option value="${item}">${item}</option>`).join('');
+function parseCSVAndRender(csvText, sourceName) {
+  const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+  if (lines.length < 2) { showStatus('error','Planilha sem linhas de dados.'); return; }
+  const parseCSVLine = line => {
+    const result = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    result.push(cur.trim());
+    return result;
+  };
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').toUpperCase().trim());
+  const rows = lines.slice(1).map(line => {
+    const vals = parseCSVLine(line).map(v => v.replace(/^"|"$/g,'').trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+  if (!rows.length) { showStatus('error', 'Nenhuma linha de dados encontrada na planilha.'); return; }
+  // Reconstrói como array de objetos com chaves originais
+  const headerOrig = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  const rowsOrig = lines.slice(1).map(line => {
+    const vals = parseCSVLine(line).map(v => v.replace(/^"|"$/g,'').trim());
+    const obj = {};
+    headerOrig.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+  processRows(rowsOrig, sourceName);
+}
 
-            document.getElementById('filter-usina').innerHTML = createOptions(usinas, 'Todas as Usinas');
-            document.getElementById('filter-status').innerHTML = createOptions(statusList, 'Todos os Status');
-            document.getElementById('filter-fabricante').innerHTML = createOptions(fabricantes, 'Todos os Fabricantes');
-            
-            // Corrige o valor 'Todos' vs 'Todas' para usina
-            document.getElementById('filter-usina').options[0].value = 'Todas';
-        }
+// ═══════════════════════════════════════════
+// Arquivo local
+// ═══════════════════════════════════════════
+function handleFile(evt) {
+  const file = evt.target.files[0]; if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      if (ext === 'csv') {
+        parseCSVAndRender(e.target.result, file.name);
+      } else {
+        const wb = XLSX.read(e.target.result, {type:'array', cellDates:false});
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw:true, defval:''});
+        processRows(rows, file.name);
+      }
+    } catch(err) { showStatus('error','Erro ao processar arquivo: '+err.message); }
+  };
+  if (ext === 'csv') reader.readAsText(file,'UTF-8'); else reader.readAsArrayBuffer(file);
+  evt.target.value = '';
+}
 
-        function getStatusColor(status) {
-            const st = status.toLowerCase();
-            if(st.includes('operando') || st.includes('ok')) return { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' };
-            if(st.includes('aberto') || st.includes('falha')) return { bg: 'bg-red-100', text: 'text-red-700', hex: '#ef4444' };
-            if(st.includes('rma') || st.includes('análise')) return { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' };
-            if(st.includes('concluído') || st.includes('resolvido')) return { bg: 'bg-slate-200', text: 'text-slate-600', hex: '#94a3b8' };
-            return { bg: 'bg-gray-100', text: 'text-gray-700', hex: '#6b7280' };
-        }
+// ═══════════════════════════════════════════
+// Processamento de dados
+// ═══════════════════════════════════════════
+const PAGE_SIZE = 10;
+let DATA = [], page = 0;
+let filters = {usina:'Todos', fab:'Todos', status:'Todos'};
+const PALETTE = ['#388bfd','#d29922','#3fb950','#a371f7','#f85149','#39d353','#58a6ff','#e3b341'];
+const USINA_COLORS = {};
 
-        function updateDashboard() {
-            if (rawData.length === 0) return;
+const COL_MAP = {
+  id:      v => /^ID.?FALHA$/i.test(v) || v.toUpperCase()==='ID',
+  usina:   v => /^USINA/i.test(v) || /^PLANTA/i.test(v),
+  inv:     v => /^INVERSOR/i.test(v) || /^INV$/i.test(v),
+  dataOc:  v => /OCORR/i.test(v) || /^DATA.OC/i.test(v),
+  causa:   v => /CAUSA/i.test(v),
+  medida:  v => /MEDIDA/i.test(v) || /^A[CÇ][AÃ]O/i.test(v),
+  status:  v => /^STATUS/i.test(v),
+  dataFim: v => /CONCLUS/i.test(v) || /^DATA.FIM/i.test(v) || /^DATA.CONCLUS/i.test(v),
+  fab:     v => /^FABRICANTE/i.test(v) || /^MARCA/i.test(v),
+  tipo:    v => /^TIPO/i.test(v),
+  inop:    v => /INOPER/i.test(v) || /^PERC/i.test(v),
+  dias:    v => /^TEMPO/i.test(v) || /^DIAS/i.test(v) || /DOWNTIME/i.test(v),
+};
 
-            const filterUsina = document.getElementById('filter-usina').value;
-            const filterStatus = document.getElementById('filter-status').value;
-            const filterFabricante = document.getElementById('filter-fabricante').value;
+function findCols(headers) {
+  const result = {};
+  for (const [key, testFn] of Object.entries(COL_MAP)) {
+    result[key] = headers.find(h => testFn(h)) || null;
+  }
+  return result;
+}
 
-            const filteredData = rawData.filter(item => {
-                const matchUsina = filterUsina === 'Todas' || item.usina === filterUsina;
-                const matchStatus = filterStatus === 'Todos' || item.status === filterStatus;
-                const matchFabricante = filterFabricante === 'Todos' || item.fabricante === filterFabricante;
-                return matchUsina && matchStatus && matchFabricante;
-            });
+function parseDate(val) {
+  if (!val || val === '') return null;
+  if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000)).toISOString().slice(0,10);
+  const s = val.toString().trim();
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { const y = m[3].length===2?'20'+m[3]:m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  return null;
+}
 
-            renderKPIs(filteredData);
-            renderTable(filteredData);
-            renderCharts(filteredData);
-        }
+function parseInop(val) {
+  if (!val && val !== 0) return 0;
+  let n = parseFloat(val.toString().replace(',','.').replace('%',''));
+  if (isNaN(n)) return 0;
+  if (n > 1) n = n / 100;
+  return Math.min(1, Math.max(0, n));
+}
 
-        function renderKPIs(data) {
-            const total = data.length;
-            const inativos = data.filter(d => {
-                const st = d.status.toLowerCase();
-                return st.includes('aberto') || st.includes('rma') || st.includes('falha');
-            }).length;
-            
-            const ativosNoMomento = data.filter(d => !d.status.toLowerCase().includes('concluído'));
-            const dispPercent = ativosNoMomento.length > 0 
-                ? Math.round(((ativosNoMomento.length - inativos) / ativosNoMomento.length) * 100) 
-                : 0;
+function processRows(rows, sourceName) {
+  if (!rows || !rows.length) { showStatus('error','Planilha vazia.'); return; }
+  const headers = Object.keys(rows[0]);
+  const cols = findCols(headers);
 
-            const comFalha = data.filter(d => d.tempo > 0);
-            const mediaTempo = comFalha.length > 0 
-                ? Math.round(comFalha.reduce((acc, curr) => acc + curr.tempo, 0) / comFalha.length) 
-                : 0;
+  DATA = rows.map((r, i) => {
+    const get = k => cols[k] ? (r[cols[k]] !== undefined ? r[cols[k]] : '') : '';
+    const dataOcStr  = parseDate(get('dataOc'));
+    const dataFimStr = parseDate(get('dataFim'));
+    let dias = parseFloat((get('dias')||'0').toString().replace(',','.').replace(/[^\d.]/g,'')) || 0;
+    dias = Math.round(dias);
+    if (!dias && dataOcStr && dataFimStr) {
+      dias = Math.max(0, Math.round((new Date(dataFimStr) - new Date(dataOcStr)) / 86400000));
+    }
+    const usina  = (get('usina') || '').toString().trim() || 'Não informado';
+    const status = (get('status') || '').toString().trim() || 'Não informado';
+    return {
+      id:      (get('id') || `FAL-${String(i+1).padStart(3,'0')}`).toString().trim(),
+      usina,
+      inv:     (get('inv') || '—').toString().trim(),
+      dataOc:  dataOcStr  || '—',
+      causa:   (get('causa')  || 'Não informado').toString().trim(),
+      medida:  (get('medida') || '—').toString().trim(),
+      status,
+      dataFim: dataFimStr || '—',
+      fab:     (get('fab')  || 'Não informado').toString().trim(),
+      tipo:    (get('tipo') || 'Campo').toString().trim(),
+      inop:    parseInop(get('inop')),
+      dias,
+    };
+  }).filter(r => r.usina !== 'Não informado' && r.usina !== '');
 
-            document.getElementById('kpi-total').textContent = total;
-            document.getElementById('kpi-disponibilidade').textContent = `${dispPercent}%`;
-            document.getElementById('kpi-falhas').textContent = inativos;
-            document.getElementById('kpi-tempo').textContent = mediaTempo;
-        }
+  if (!DATA.length) { showStatus('error','Nenhuma linha válida encontrada. Verifique os nomes das colunas.'); return; }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            document.getElementById('table-count').textContent = `Mostrando ${data.length} registros`;
+  // Cores por usina
+  Object.keys(USINA_COLORS).forEach(k => delete USINA_COLORS[k]);
+  [...new Set(DATA.map(r=>r.usina))].forEach((u,i) => USINA_COLORS[u] = PALETTE[i % PALETTE.length]);
 
-            data.forEach(item => {
-                const colors = getStatusColor(item.status);
-                const tr = document.createElement('tr');
-                tr.className = 'bg-white border-b hover:bg-slate-50 transition-colors';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${item.id}</td>
-                    <td class="px-6 py-4">${item.usina}</td>
-                    <td class="px-6 py-4">${item.fabricante}</td>
-                    <td class="px-6 py-4"><span class="status-badge ${colors.bg} ${colors.text}">${item.status}</span></td>
-                    <td class="px-6 py-4">${item.causa}</td>
-                    <td class="px-6 py-4 text-center font-bold ${item.tempo > 15 ? 'text-red-500' : 'text-slate-600'}">${item.tempo}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+  filters = {usina:'Todos', fab:'Todos', status:'Todos'};
+  page = 0;
 
-        function renderCharts(data) {
-            const usinas = [...new Set(rawData.map(d => d.usina))];
-            const statusTypes = [...new Set(rawData.map(d => d.status))];
-            
-            const datasets = statusTypes.map(status => {
-                return {
-                    label: status,
-                    data: usinas.map(u => data.filter(d => d.usina === u && d.status === status).length),
-                    backgroundColor: getStatusColor(status).hex
-                };
-            });
+  document.getElementById('empty-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+  document.getElementById('btn-export').disabled = false;
+  document.getElementById('sidebar-footer').textContent = `${new Set(DATA.map(r=>r.usina)).size} usinas · ${DATA.length} falhas`;
+  const now = new Date().toLocaleString('pt-BR');
+  const src = sourceName === 'Google Sheets' ? '🟢 Google Sheets' : `📁 ${sourceName}`;
+  document.getElementById('topbar-sub').textContent = `${DATA.length} registros · Fonte: ${src} · ${now}`;
+  showStatus('ok', `✓ ${DATA.length} registros carregados de "${sourceName}".`);
+  updatePublishBtn();
+  render();
+}
 
-            if(chartUsinaStatusInstance) chartUsinaStatusInstance.destroy();
-            chartUsinaStatusInstance = new Chart(document.getElementById('chart-usina-status').getContext('2d'), {
-                type: 'bar',
-                data: { labels: usinas, datasets: datasets },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } },
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
-                }
-            });
+// ═══════════════════════════════════════════
+// GitHub
+// ═══════════════════════════════════════════
+const GH = { user:'Fred-Alexandrino', repo:'oem', file:'index.html', token:'' };
 
-            const falhas = data.filter(d => d.causa && d.causa !== 'N/A' && !d.causa.toLowerCase().includes('ok') && !d.causa.toLowerCase().includes('operando'));
-            const causasCount = falhas.reduce((acc, curr) => {
-                acc[curr.causa] = (acc[curr.causa] || 0) + 1;
-                return acc;
-            }, {});
+function loadConfig() {
+  try { const s = localStorage.getItem('om_gh_config'); if(s) Object.assign(GH, JSON.parse(s)); } catch(e){}
+  updateTokenIndicator();
+}
+function saveConfig() {
+  const t = document.getElementById('cfg-token').value.trim();
+  if (!t) { alert('Cole o token gerado no GitHub.'); return; }
+  GH.token = t;
+  localStorage.setItem('om_gh_config', JSON.stringify(GH));
+  closeConfigModal();
+  updateTokenIndicator();
+  updatePublishBtn();
+  showStatus('ok','✓ Token salvo. Botão "Publicar no GitHub" ativado.');
+}
+function updateTokenIndicator() {
+  const el = document.getElementById('tok-indicator');
+  el.innerHTML = GH.token
+    ? '<span class="tok-dot tok-ok"></span>Token'
+    : '<span class="tok-dot tok-no"></span>Token';
+}
+function updatePublishBtn() {
+  const btn = document.getElementById('btn-publish');
+  btn.disabled = !(DATA.length > 0 && GH.token);
+  btn.title = !DATA.length ? 'Carregue os dados primeiro' : !GH.token ? 'Configure o token GitHub' : 'Publicar no GitHub Pages';
+}
+function openConfigModal() { loadConfig(); document.getElementById('cfg-token').value = GH.token; document.getElementById('modal-config').style.display='flex'; }
+function closeConfigModal() { document.getElementById('modal-config').style.display='none'; }
 
-            if(chartCausasInstance) chartCausasInstance.destroy();
-            chartCausasInstance = new Chart(document.getElementById('chart-causas').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(causasCount).length ? Object.keys(causasCount) : ['Nenhuma Falha'],
-                    datasets: [{
-                        data: Object.values(causasCount).length ? Object.values(causasCount) : [1],
-                        backgroundColor: Object.values(causasCount).length ? ['#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'] : ['#e2e8f0'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } } }
-                }
-            });
-        }
+let currentSHA = '';
+async function openPublishModal() {
+  loadConfig();
+  if (!GH.token) { openConfigModal(); return; }
+  document.getElementById('pub-records').textContent = `${DATA.length} registros`;
+  document.getElementById('pub-status-box').style.display = 'none';
+  document.getElementById('pub-confirm-btn').disabled = false;
+  document.getElementById('pub-confirm-btn').innerHTML = `<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg> Publicar agora`;
+  document.getElementById('pub-cancel-btn').disabled = false;
+  document.getElementById('modal-publish').style.display = 'flex';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,
+      {headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json'}});
+    currentSHA = r.ok ? (await r.json()).sha : '';
+  } catch(e) { currentSHA = ''; }
+}
+function closePublishModal() { document.getElementById('modal-publish').style.display='none'; }
 
-        document.getElementById('filter-usina').addEventListener('change', updateDashboard);
-        document.getElementById('filter-status').addEventListener('change', updateDashboard);
-        document.getElementById('filter-fabricante').addEventListener('change', updateDashboard);
+function setPubStatus(type, msg) {
+  const box = document.getElementById('pub-status-box');
+  box.style.display='flex';
+  box.className=`pub-status ${type==='ok'?'pub-ok':type==='err'?'pub-err':'pub-info'}`;
+  box.innerHTML = type==='loading' ? `<div class="spinner"></div><span>${msg}</span>` : `<span>${msg}</span>`;
+}
 
-        // Dispara a busca no Sheets logo ao carregar a página
-        window.addEventListener('DOMContentLoaded', fetchGoogleSheetsData);
+async function publishToGitHub() {
+  const cb = document.getElementById('pub-confirm-btn'), xb = document.getElementById('pub-cancel-btn');
+  cb.disabled=true; xb.disabled=true;
+  cb.innerHTML='<div class="spinner"></div> Publicando...';
+  setPubStatus('loading','Conectando ao GitHub...');
+  try {
+    const html = buildHTML();
+    const encoded = btoa(unescape(encodeURIComponent(html)));
+    setPubStatus('loading','Enviando para o repositório...');
+    const body = {message:`Dashboard O&M — ${new Date().toLocaleString('pt-BR')} (${DATA.length} registros)`,content:encoded,branch:'main'};
+    if (currentSHA) body.sha = currentSHA;
+    const res = await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{
+      method:'PUT',
+      headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (res.ok) {
+      currentSHA = data.content?.sha || currentSHA;
+      setPubStatus('ok','✓ Publicado com sucesso!');
+      document.getElementById('pub-info').innerHTML=`
+        <div style="text-align:center;padding:10px 0">
+          <div style="margin-bottom:10px;color:var(--text3);font-size:13px">🎉 Dashboard ao vivo em:</div>
+          <a href="https://${GH.user}.github.io/${GH.repo}/" target="_blank"
+             style="color:var(--blue);font-weight:600;font-size:14px;word-break:break-all">
+            https://${GH.user}.github.io/${GH.repo}/
+          </a>
+          <div style="margin-top:8px;font-size:11px;color:var(--text3)">Disponível em ~60 segundos · Commit: ${data.commit?.sha?.slice(0,7)||'—'}</div>
+        </div>`;
+      cb.innerHTML='✓ Concluído';
+      xb.textContent='Fechar'; xb.disabled=false;
+    } else {
+      const msgs={401:'Token inválido — vá em "Token" e atualize.',404:`Repositório não encontrado: ${GH.user}/${GH.repo}`,409:'Conflito — feche e tente novamente.'};
+      setPubStatus('err',`✗ ${msgs[res.status]||`Erro ${res.status}: ${data.message}`}`);
+      cb.disabled=false; cb.innerHTML='Tentar novamente'; xb.disabled=false;
+    }
+  } catch(e) {
+    setPubStatus('err',`✗ Erro de conexão: ${e.message}`);
+    cb.disabled=false; cb.innerHTML='Tentar novamente'; xb.disabled=false;
+  }
+}
 
-    </script>
+function buildHTML() {
+  const dataJSON = JSON.stringify(DATA);
+  const colJSON  = JSON.stringify(USINA_COLORS);
+  const inject = `<script>
+(function(){
+  var d=${dataJSON};
+  var c=${colJSON};
+  window.addEventListener('DOMContentLoaded',function(){
+    Object.assign(USINA_COLORS,c);
+    processRows(d.map(function(r){
+      return{ID_FALHA:r.id,USINA:r.usina,INVERSOR:r.inv,
+        DATA_OCORRENCIA:r.dataOc,CAUSA_PROVAVEL:r.causa,
+        MEDIDA_ADOTADA:r.medida,STATUS_FINAL:r.status,
+        DATA_CONCLUSAO:r.dataFim,FABRICANTE:r.fab,
+        TIPO_CORRECAO:r.tipo,PERCENTUAL_INOPERANCIA:r.inop,
+        TEMPO_INOPERANTE:r.dias};
+    }),'dados_publicados');
+  });
+})();
+<\/script>`;
+  return document.documentElement.outerHTML.replace('</body>', inject+'</body>');
+}
+
+// ═══════════════════════════════════════════
+// Loading
+// ═══════════════════════════════════════════
+function showLoading(msg) { document.getElementById('loading-msg').textContent=msg; document.getElementById('loading-overlay').style.display='flex'; }
+function hideLoading()    { document.getElementById('loading-overlay').style.display='none'; }
+
+function showStatus(type, msg) {
+  const el = document.getElementById('status-msg');
+  el.style.display='block';
+  const c = type==='ok'   ? {bg:'rgba(63,185,80,.1)', b:'rgba(63,185,80,.3)',  t:'#3fb950'}
+           : type==='error'? {bg:'rgba(248,81,73,.1)', b:'rgba(248,81,73,.3)', t:'#f85149'}
+           :                 {bg:'rgba(210,153,34,.1)',b:'rgba(210,153,34,.3)',t:'#d29922'};
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:${c.bg};border:1px solid ${c.b};border-radius:6px;margin-bottom:14px;font-size:12px;color:${c.t}">${msg}</div>`;
+  if(type==='ok') setTimeout(()=>el.style.display='none', 5000);
+}
+
+// ═══════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════
+function uniq(arr,k){return['Todos',...new Set(arr.map(r=>r[k]))]}
+function filtered(){return DATA.filter(r=>{
+  if(filters.usina!=='Todos'&&r.usina!==filters.usina)return false;
+  if(filters.fab!=='Todos'&&r.fab!==filters.fab)return false;
+  if(filters.status!=='Todos'&&r.status!==filters.status)return false;
+  return true;
+})}
+function setFilter(k,v){filters[k]=v;page=0;render();}
+
+function renderPills(id,vals,key){
+  document.getElementById(id).innerHTML=vals.map(v=>`<button class="pill${filters[key]===v?' active':''}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`).join('');
+}
+function renderKPIs(data){
+  const total=data.length,invs=new Set(data.map(r=>r.inv)).size;
+  const dias=data.reduce((s,r)=>s+r.dias,0);
+  const open=data.filter(r=>!r.status.toLowerCase().includes('conclu')).length;
+  const done=total-open,mttr=total>0?(dias/total).toFixed(1):0;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total de ocorrências</div><div class="kpi-value">${total}</div><div class="kpi-meta">${invs} inversores afetados</div></div>
+    <div class="kpi amber"><div class="kpi-label">Tempo inoperante</div><div class="kpi-value">${dias}</div><div class="kpi-meta">dias acumulados</div></div>
+    <div class="kpi red"><div class="kpi-label">MTTR médio</div><div class="kpi-value">${mttr}</div><div class="kpi-meta">dias por ocorrência</div></div>
+    <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${done}</div><div class="kpi-meta">${open>0?open+' em aberto':'todos resolvidos'}</div></div>`;
+}
+function renderAlert(data){
+  const box=document.getElementById('alert-box');
+  const causes={};data.forEach(r=>causes[r.causa]=(causes[r.causa]||0)+1);
+  const top=Object.entries(causes).sort((a,b)=>b[1]-a[1])[0];
+  if(top&&top[1]/data.length>=0.6){box.style.display='flex';box.className='alert-banner alert-red';box.innerHTML=`<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong style="color:var(--red)">Padrão crítico:</strong> ${Math.round(top[1]/data.length*100)}% das ocorrências por <strong style="color:var(--red)">${top[0]}</strong>.</div>`;}
+  else box.style.display='none';
+}
+function renderBarChart(id,data,groupKey,colorFn){
+  const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);const max=sorted[0]?sorted[0][1]:1;
+  const el=document.getElementById(id);
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:4px">Sem dados</div>';return;}
+  el.innerHTML=sorted.map(([label,n])=>`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/max*100)}%;background:${colorFn?colorFn(label):'#388bfd'}">${n}</div></div><div class="bar-count">${n}</div></div>`).join('');
+}
+function renderMTTR(data){
+  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
+  const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);const max=rows[0]?rows[0][1]:1;
+  const el=document.getElementById('chart-mttr');
+  if(!rows.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  el.innerHTML=rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl" title="${u}">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(avg/max*100)}%;background:${USINA_COLORS[u]||'#388bfd'}">${avg.toFixed(1)}d</div></div></div>`).join('');
+}
+function renderTipo(data){
+  const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
+  const total=data.length,colors=['#388bfd','#3fb950','#d29922','#a371f7','#f85149'],keys=Object.keys(counts);
+  const el=document.getElementById('chart-tipo');
+  if(!total){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  const cx=60,cy=60,r=50,ir=30;let angle=-Math.PI/2;
+  const arcs=keys.map((k,i)=>{
+    const frac=counts[k]/total,da=frac*2*Math.PI;
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);angle+=da;
+    const x2=cx+r*Math.cos(angle),y2=cy+r*Math.sin(angle);
+    const x3=cx+ir*Math.cos(angle),y3=cy+ir*Math.sin(angle);
+    const x4=cx+ir*Math.cos(angle-da),y4=cy+ir*Math.sin(angle-da);
+    return{k,n:counts[k],color:colors[i%colors.length],
+      path:`M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${frac>.5?1:0},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${ir},${ir} 0 ${frac>.5?1:0},0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`};
+  });
+  el.innerHTML=`<div class="donut-wrap"><svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${arcs.map(a=>`<path d="${a.path}" fill="${a.color}"/>`).join('')}<text x="60" y="56" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="700">${total}</text><text x="60" y="69" text-anchor="middle" fill="#6e7681" font-size="10">eventos</text></svg><div class="donut-legend">${keys.map((k,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[i%colors.length]}"></div><span>${k}</span><span class="legend-val">${counts[k]}</span></div>`).join('')}</div></div>`;
+}
+function renderGantt(data){
+  const el=document.getElementById('gantt-chart');
+  const valid=data.filter(r=>r.dataOc!=='—'&&r.dataFim!=='—');
+  if(!valid.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados com datas completas</div>';return;}
+  const dates=valid.flatMap(r=>[new Date(r.dataOc),new Date(r.dataFim)]);
+  const minD=new Date(Math.min(...dates)),maxD=new Date(Math.max(...dates)),totalMs=Math.max(maxD-minD,1);
+  const months=[];let cur=new Date(minD.getFullYear(),minD.getMonth(),1);
+  while(cur<=maxD){months.push(cur.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+  document.getElementById('gantt-range').textContent=`${minD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} — ${maxD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
+  const sorted=[...valid].sort((a,b)=>a.dataOc.localeCompare(b.dataOc));
+  el.innerHTML=`<div class="gantt-row" style="margin-bottom:7px"><div class="gantt-lbl"></div><div style="flex:1;display:flex">${months.map(m=>`<div style="flex:1;font-size:10px;color:var(--text3);border-left:1px solid var(--border);padding-left:4px">${m}</div>`).join('')}</div></div>${sorted.map(r=>{const s=new Date(r.dataOc),e=new Date(r.dataFim);const left=((s-minD)/totalMs*100).toFixed(2),width=Math.max(((e-s)/totalMs*100).toFixed(2),.5);return`<div class="gantt-row"><div class="gantt-lbl">${r.id}</div><div class="gantt-track"><div class="gantt-bar" style="left:${left}%;width:${width}%;background:${USINA_COLORS[r.usina]||'#388bfd'};opacity:.85" title="${r.usina}·${r.inv}·${r.dias}d">${r.inv}</div></div></div>`;}).join('')}<div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:9px">${Object.entries(USINA_COLORS).map(([u,c])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;background:${c};border-radius:2px;display:inline-block"></span>${u}</div>`).join('')}</div>`;
+}
+function renderTable(data){
+  const start=page*PAGE_SIZE,slice=data.slice(start,start+PAGE_SIZE);
+  const tbody=document.getElementById('table-body'),empty=document.getElementById('empty-state');
+  document.getElementById('table-count').textContent=`${data.length} registros`;
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('pager-info').textContent='';document.getElementById('btn-prev').disabled=true;document.getElementById('btn-next').disabled=true;return;}
+  empty.style.display='none';
+  tbody.innerHTML=slice.map(r=>{
+    const cls=r.dias>=25?'row-high':r.dias>=15?'row-med':'';
+    const isConcluido=r.status.toLowerCase().includes('conclu');
+    const badge=isConcluido?'<span class="badge badge-green">✓ Concluído</span>':'<span class="badge badge-red">● Em aberto</span>';
+    return`<tr class="${cls}"><td><span class="id-chip">${r.id}</span></td><td title="${r.usina}"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td><td>${r.inv}</td><td>${r.dataOc}</td><td title="${r.causa}">${r.causa}</td><td title="${r.medida}">${r.medida}</td><td><span class="badge badge-amber">${(r.inop*100).toFixed(0)}%</span></td><td style="font-weight:600;color:${r.dias>=25?'var(--red)':r.dias>=15?'var(--amber)':'var(--text)'}">${r.dias}d</td><td>${badge}</td><td>${r.fab}</td></tr>`;
+  }).join('');
+  const end=Math.min(start+PAGE_SIZE,data.length);
+  document.getElementById('pager-info').textContent=`${start+1}–${end} de ${data.length}`;
+  document.getElementById('btn-prev').disabled=page===0;
+  document.getElementById('btn-next').disabled=end>=data.length;
+}
+function changePage(d){const data=filtered();page=Math.max(0,Math.min(Math.ceil(data.length/PAGE_SIZE)-1,page+d));renderTable(data);}
+function render(){
+  const data=filtered();
+  renderPills('f-usina',uniq(DATA,'usina'),'usina');
+  renderPills('f-fab',uniq(DATA,'fab'),'fab');
+  renderPills('f-status',['Todos',...new Set(DATA.map(r=>r.status))],'status');
+  renderKPIs(data);renderAlert(data);
+  renderBarChart('chart-causas',data,'causa',()=>'#388bfd');
+  renderBarChart('chart-usinas',data,'usina',u=>USINA_COLORS[u]||'#388bfd');
+  renderMTTR(data);renderTipo(data);renderGantt(data);renderTable(data);
+}
+function exportCSV(){
+  const data=filtered();
+  const csv=[['ID','Usina','Inversor','Data Ocorrência','Causa','Medida','Inoperância %','Dias','Status','Fabricante'],
+    ...data.map(r=>[r.id,r.usina,r.inv,r.dataOc,r.causa,r.medida,(r.inop*100).toFixed(0)+'%',r.dias,r.status,r.fab])]
+    .map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='falhas_inversores.csv';a.click();
+}
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>{
+  loadConfig();
+  document.body.addEventListener('dragover',e=>e.preventDefault());
+  document.body.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f],value:''}});});
+});
+</script>
 </body>
 </html>
