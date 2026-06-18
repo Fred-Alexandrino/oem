@@ -698,26 +698,50 @@ function closeInvModal() { document.getElementById('modal-inv').style.display = 
 // Modal: Tickets
 // ═══════════════════════════
 function openTicketsModal() {
-  const data = filtered();
-  const comTicket = data.filter(r => r.ticket && r.ticket !== '—');
+  // Usa TODOS os dados (sem filtro de painel) e filtra apenas os que têm ticket válido
+  const comTicket = DATA.filter(r =>
+    r.ticket &&
+    r.ticket.trim() !== '' &&
+    r.ticket.trim() !== '—' &&
+    r.ticket.trim() !== '-' &&
+    r.ticket.trim().toUpperCase() !== 'N/A' &&
+    r.ticket.trim().toUpperCase() !== 'SEM TICKET'
+  );
+
+  const totalInv = new Set(comTicket.map(r => r.inv)).size;
   document.getElementById('tickets-modal-sub').textContent =
-    `${comTicket.length} chamado(s) · ${data.length} ocorrências filtradas`;
+    `${comTicket.length} chamado(s) abertos · ${totalInv} inversor(es) com ticket`;
+
   if (!comTicket.length) {
     document.getElementById('tickets-modal-body').innerHTML =
-      '<div style="color:var(--text3);font-size:13px;padding:8px 0">Nenhum ticket registrado nos dados filtrados.</div>';
+      '<div style="color:var(--text3);font-size:13px;padding:16px 0;text-align:center">Nenhum inversor com ticket registrado na base de dados.</div>';
   } else {
-    document.getElementById('tickets-modal-body').innerHTML = comTicket.map(r => `
-      <div class="ticket-item">
-        <div class="ticket-num">${r.ticket}</div>
-        <div class="ticket-info">
-          <div class="ticket-inv">${r.inv} · ${r.id}</div>
-          <div class="ticket-usina">${r.usina} · ${fmtDate(r.dataOc)}${r.dataAtend!=='—'?' · Atend: '+fmtDate(r.dataAtend):''}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.causa}</div>
-        </div>
-        <div>${r.status.toLowerCase().includes('conclu')
-          ? '<span class="badge badge-green">✓</span>'
-          : '<span class="badge badge-red">●</span>'}</div>
-      </div>`).join('');
+    // Agrupa por inversor para melhor visualização
+    const porInv = {};
+    comTicket.forEach(r => {
+      if (!porInv[r.inv]) porInv[r.inv] = [];
+      porInv[r.inv].push(r);
+    });
+
+    document.getElementById('tickets-modal-body').innerHTML =
+      Object.entries(porInv).map(([inv, registros]) => `
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;padding-bottom:5px;border-bottom:0.5px solid var(--border)">
+            <span style="color:${USINA_COLORS[registros[0].usina]||'#888'};margin-right:6px">●</span>${inv} — ${registros[0].usina}
+          </div>
+          ${registros.map(r => `
+          <div class="ticket-item">
+            <div class="ticket-num">${r.ticket}</div>
+            <div class="ticket-info">
+              <div class="ticket-inv">${r.id} · ${fmtDate(r.dataOc)}</div>
+              <div class="ticket-usina">${r.causa}</div>
+              ${r.dataAtend!=='—'?`<div style="font-size:11px;color:var(--teal);margin-top:2px">⏱ Atendimento: ${fmtDate(r.dataAtend)}</div>`:''}
+            </div>
+            <div>${r.status.toLowerCase().includes('conclu')
+              ? '<span class="badge badge-green">✓ Concluído</span>'
+              : '<span class="badge badge-red">● Aberto</span>'}</div>
+          </div>`).join('')}
+        </div>`).join('');
   }
   document.getElementById('modal-tickets').style.display = 'flex';
 }
