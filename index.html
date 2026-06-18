@@ -1,770 +1,1012 @@
-html_code = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Gerencial de Falhas - GridCo</title>
-    <style>
-        :root {
-            --bg-dark: #0b0f19;
-            --bg-card: #151a28;
-            --border-color: #232b3e;
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --accent-blue: #0ea5e9;
-            --status-red: #ef4444;
-            --status-yellow: #eab308;
-            --status-green: #22c55e;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: var(--font-family);
-            margin: 0;
-            padding: 32px;
-            font-size: 14px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard O&M — Inversores Solares</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;--bg4:#21262d;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.13);
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --blue:#388bfd;--blue-dim:#1f4073;--blue-bg:#0d2241;
+  --green:#3fb950;--green-bg:#0d2818;
+  --amber:#d29922;--amber-bg:#2d1f00;
+  --red:#f85149;--red-bg:#300d0d;
+  --teal:#39c5cf;--teal-bg:#00272b;
+  --purple:#a371f7;
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.shell{display:flex;min-height:100vh}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
+/* ── Topbar ── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:30px;height:30px;background:var(--blue-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-icon svg{width:15px;height:15px;stroke:var(--blue);stroke-width:2;fill:none}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
+.btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-sheets{background:#1a6134;border-color:#2ea864;color:#fff;font-size:13px;padding:8px 16px;font-weight:600}
+.btn-sheets:hover:not(:disabled){background:#1f7a3e;border-color:#3abb75;color:#fff}
+.btn-load{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.btn-load:hover:not(:disabled){background:#1a3f80;color:#fff}
+.btn-publish{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.btn-publish:hover:not(:disabled){background:#0d3a1a}
+.btn-ticket{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.btn-ticket:hover:not(:disabled){background:#003035}
+.btn-sep{width:1px;height:26px;background:var(--border2);margin:0 2px;flex-shrink:0}
+.sheets-logo{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#fff;border-radius:3px;flex-shrink:0}
+.sheets-logo svg{width:12px;height:12px}
 
-        .logo {
-            font-size: 18px;
-            font-weight: 700;
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+/* ── Content ── */
+.content{padding:20px 24px;flex:1}
 
-        .header h1 {
-            font-size: 20px;
-            font-weight: 400;
-            margin: 0;
-            color: var(--text-main);
-        }
+/* ── KPIs ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.blue::before{background:var(--blue)}.kpi.green::before{background:var(--green)}
+.kpi.amber::before{background:var(--amber)}.kpi.red::before{background:var(--red)}
+.kpi.teal::before{background:var(--teal)}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-value{font-size:24px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi.blue .kpi-value{color:var(--blue)}.kpi.green .kpi-value{color:var(--green)}
+.kpi.amber .kpi-value{color:var(--amber)}.kpi.red .kpi-value{color:var(--red)}
+.kpi.teal .kpi-value{color:var(--teal)}
+.kpi-meta{font-size:11px;color:var(--text3)}
 
-        .btn {
-            background: transparent;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+/* ── Prontidão banner ── */
+.prontidao-banner{display:flex;align-items:center;gap:12px;background:rgba(57,197,207,.07);border:1px solid rgba(57,197,207,.25);border-radius:var(--radius);padding:11px 16px;margin-bottom:16px}
+.prontidao-banner svg{width:16px;height:16px;stroke:var(--teal);stroke-width:2;fill:none;flex-shrink:0}
+.prontidao-banner p{font-size:12px;color:var(--text2);line-height:1.5}
+.prontidao-banner strong{color:var(--teal)}
 
-        .btn:hover {
-            background: rgba(14, 165, 233, 0.1);
-        }
+/* ── Filter bar ── */
+.filter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.filter-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.filter-group-label{font-size:11px;color:var(--text3);white-space:nowrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.pill:hover{background:var(--bg3);color:var(--text)}
+.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
+/* ── Charts ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:15px}
+.chart-card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:13px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-lbl{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:17px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:11px;font-weight:600;color:#fff;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bar-count{font-size:11px;color:var(--text3);min-width:16px;text-align:right}
 
-        .metric-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
+/* ── Gantt ── */
+.gantt-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:16px}
+.gantt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.gantt-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.gantt-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.gantt-lbl{font-size:11px;color:var(--text2);width:78px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gantt-track{flex:1;height:18px;background:var(--bg4);border-radius:4px;position:relative;overflow:hidden}
+.gantt-bar{position:absolute;height:100%;border-radius:3px;display:flex;align-items:center;padding:0 5px;font-size:10px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden}
+/* Marcador de atendimento no Gantt */
+.gantt-atend{position:absolute;top:0;bottom:0;width:2px;background:#39c5cf;z-index:2}
+.gantt-atend::after{content:'▼';position:absolute;top:-1px;left:-4px;font-size:8px;color:#39c5cf}
 
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-        }
+/* ── Table ── */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.table-header{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+tr:last-child td{border-bottom:none}
+tr.row-high td{background:rgba(248,81,73,.05)}
+tr.row-med td{background:rgba(210,153,34,.05)}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-teal{background:var(--teal-bg);color:var(--teal)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.id-chip{font-family:monospace;font-size:12px;color:var(--blue);font-weight:600}
 
-        .metric-total::before { background-color: var(--accent-blue); }
-        .metric-open::before { background-color: var(--status-red); }
-        .metric-progress::before { background-color: var(--status-yellow); }
-        .metric-resolved::before { background-color: var(--status-green); }
+/* Inversor clicável */
+.inv-btn{background:none;border:none;cursor:pointer;color:var(--blue);font-size:13px;font-weight:600;padding:0;text-decoration:underline dotted;text-underline-offset:3px;transition:color .15s}
+.inv-btn:hover{color:#fff}
 
-        .metric-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
+.pager{display:flex;align-items:center;justify-content:space-between;padding:8px 15px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
+.pager-btns{display:flex;gap:5px}
+.pager-btn{padding:3px 9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.pager-btn:hover:not(:disabled){background:var(--bg3);color:var(--text)}
+.pager-btn:disabled{opacity:.3;cursor:default}
 
-        .metric-total .metric-title { color: var(--text-muted); }
-        .metric-open .metric-title { color: var(--status-red); }
-        .metric-progress .metric-title { color: var(--status-yellow); }
-        .metric-resolved .metric-title { color: var(--status-green); }
+/* ── Alert ── */
+.alert-banner{display:flex;align-items:flex-start;gap:10px;border-radius:var(--radius);padding:11px 15px;margin-bottom:14px;border:1px solid}
+.alert-banner svg{width:15px;height:15px;stroke-width:2;fill:none;flex-shrink:0;margin-top:2px}
+.alert-red{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.25);color:var(--text2)}
+.alert-red svg{stroke:var(--red)}
 
-        .metric-value {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 0;
-            color: white;
-        }
+/* ── Empty ── */
+.empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;text-align:center;gap:16px}
+.empty-big svg{width:52px;height:52px;stroke:var(--text3);stroke-width:1.2;fill:none}
+.empty-big h2{font-size:17px;font-weight:600;color:var(--text)}
+.empty-big p{font-size:13px;color:var(--text3);max-width:360px;line-height:1.6}
+.empty-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.empty-state{padding:36px;text-align:center;color:var(--text3);font-size:13px}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{display:flex;flex-direction:column;gap:7px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-val{font-weight:600;color:var(--text);margin-left:auto;padding-left:10px}
 
-        /* Filters Section */
-        .filters-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-        }
+/* ── Modals ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:500px;max-width:94vw;overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{padding:18px 22px 13px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.modal-sub{font-size:12px;color:var(--text3);line-height:1.6}
+.modal-body{padding:18px 22px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg3);flex-shrink:0}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--blue)}
+.field input::placeholder{color:var(--text3)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.field-hint a{color:var(--blue);text-decoration:none}
+.token-step{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border-radius:var(--radius-sm);margin-bottom:7px;font-size:12px;color:var(--text2);line-height:1.5}
+.token-step-num{width:19px;height:19px;border-radius:50%;background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.pub-status{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--radius-sm);margin-bottom:13px;font-size:12px;border:1px solid}
+.pub-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3);color:var(--green)}
+.pub-err{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.3);color:var(--red)}
+.pub-info{background:rgba(56,139,253,.1);border-color:rgba(56,139,253,.3);color:var(--blue)}
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+/* ── Detalhe do inversor ── */
+.inv-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.inv-detail-item{background:var(--bg4);border-radius:var(--radius-sm);padding:10px 12px}
+.inv-detail-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.inv-detail-value{font-size:13px;color:var(--text);font-weight:500;word-break:break-word;white-space:normal}
+.inv-atend-box{background:rgba(57,197,207,.08);border:1px solid rgba(57,197,207,.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
+.inv-atend-box svg{width:16px;height:16px;stroke:var(--teal);stroke-width:2;fill:none;flex-shrink:0;margin-top:1px}
+.inv-obs-box{background:var(--bg4);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-word}
 
-        .filter-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+/* ── Tickets modal ── */
+.ticket-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg4);border-radius:var(--radius-sm);margin-bottom:7px}
+.ticket-num{font-family:monospace;font-size:13px;font-weight:700;color:var(--teal);min-width:90px}
+.ticket-info{font-size:12px;color:var(--text2);line-height:1.5}
+.ticket-inv{font-weight:500;color:var(--text)}
+.ticket-usina{color:var(--text3);font-size:11px}
 
-        .filter-input {
-            background-color: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 13px;
-            width: 100%;
-            box-sizing: border-box;
-            outline: none;
-        }
+/* ── Loading ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(13,17,23,.85);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(2px)}
+.loading-overlay p{font-size:14px;color:var(--text2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:13px;height:13px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.spinner-lg{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+.tok-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+.tok-ok{background:var(--green)}.tok-no{background:var(--text3)}
 
-        .filter-input:focus {
-            border-color: var(--accent-blue);
-        }
-
-        .table-container {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            padding: 16px;
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-            letter-spacing: 0.5px;
-        }
-        
-        th:hover {
-            color: var(--text-main);
-            background-color: rgba(255,255,255,0.02);
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        .clickable-equip {
-            color: var(--text-main);
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: color 0.2s;
-        }
-        
-        .clickable-equip:hover {
-            color: var(--accent-blue);
-        }
-
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            border: 1px solid;
-            display: inline-block;
-        }
-
-        .status-aberto { color: var(--status-red); border-color: var(--status-red); background: transparent; }
-        .status-andamento { color: var(--status-yellow); border-color: var(--status-yellow); background: transparent; }
-        .status-resolvido { color: var(--status-green); border-color: var(--status-green); background: transparent; }
-        .status-default { color: var(--text-muted); border-color: var(--border-color); background: transparent; }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background-color: #1a2234;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 650px;
-            max-width: 90%;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .modal-title-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .modal-subtitle {
-            font-size: 11px;
-            color: var(--accent-blue);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: white;
-            margin: 0;
-        }
-
-        .modal-close {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 14px;
-            border-radius: 6px;
-            padding: 6px 12px;
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .modal-body {
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .history-timeline {
-            border-left: 2px solid var(--border-color);
-            margin-left: 8px;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .history-item {
-            margin-bottom: 32px;
-            position: relative;
-        }
-
-        .history-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .history-item::before {
-            content: '';
-            position: absolute;
-            left: -31px;
-            top: 2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--accent-blue);
-            border: 3px solid #1a2234;
-            box-shadow: 0 0 0 1px var(--border-color);
-        }
-
-        .history-date {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .history-date strong {
-            color: var(--accent-blue);
-        }
-
-        .history-action {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 16px;
-            border-radius: 8px;
-            color: var(--text-main);
-            line-height: 1.6;
-            font-size: 13px;
-        }
-
-        #loading {
-            text-align: center;
-            padding: 60px;
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-    </style>
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}.content{padding:12px}.topbar{padding:10px 12px}}
+</style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                GridCo.
-            </div>
-            <h1>Painel Gerencial de Falhas</h1>
-        </div>
-        <button class="btn" onclick="fetchData()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-            Atualizar
+<div class="shell">
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div>
+        <div class="topbar-title">Dashboard O&M — Inversores Solares</div>
+        <div class="topbar-sub" id="topbar-sub">Nenhuma fonte de dados carregada</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <!-- Sheets -->
+      <button class="btn btn-sheets" onclick="fetchFromSheets()">
+        <div class="sheets-logo"><svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="3" fill="#0F9D58"/><rect x="5" y="7" width="14" height="2" rx="1" fill="white"/><rect x="5" y="11" width="14" height="2" rx="1" fill="white"/><rect x="5" y="15" width="9" height="2" rx="1" fill="white"/></svg></div>
+        Atualizar do Google Sheets
+      </button>
+      <div class="btn-sep"></div>
+      <!-- Tickets -->
+      <button class="btn btn-ticket" id="btn-tickets" onclick="openTicketsModal()" disabled title="Carregue os dados primeiro">
+        <svg viewBox="0 0 24 24"><path d="M2 9a3 3 0 010-6h20a3 3 0 010 6"/><path d="M2 15a3 3 0 000 6h20a3 3 0 000-6"/><path d="M4 9v6"/><path d="M20 9v6"/></svg>
+        Chamados
+      </button>
+      <!-- Arquivo local -->
+      <button class="btn btn-load" onclick="document.getElementById('file-input').click()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Carregar arquivo
+      </button>
+      <!-- Publicar -->
+      <button class="btn btn-publish" id="btn-publish" onclick="openPublishModal()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        Publicar no GitHub
+      </button>
+      <div class="btn-sep"></div>
+      <!-- CSV -->
+      <button class="btn" id="btn-export" onclick="exportCSV()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV
+      </button>
+      <!-- Token -->
+      <button class="btn" onclick="openConfigModal()" id="btn-cfg" title="Configurar token GitHub">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span id="tok-indicator"><span class="tok-dot tok-no"></span>Token</span>
+      </button>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="display:none">
+    </div>
+  </header>
+
+  <div class="content">
+    <div id="status-msg" style="display:none"></div>
+
+    <!-- Empty -->
+    <div id="empty-screen" class="empty-big">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <h2>Dashboard O&M — Inversores Solares</h2>
+      <p>Carregue os dados do Google Sheets com um clique ou importe um arquivo local.</p>
+      <div class="empty-actions">
+        <button class="btn btn-sheets" style="font-size:14px;padding:10px 20px" onclick="fetchFromSheets()">
+          <div class="sheets-logo"><svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="3" fill="#0F9D58"/><rect x="5" y="7" width="14" height="2" rx="1" fill="white"/><rect x="5" y="11" width="14" height="2" rx="1" fill="white"/><rect x="5" y="15" width="9" height="2" rx="1" fill="white"/></svg></div>
+          Atualizar do Google Sheets
         </button>
+        <button class="btn btn-load" style="font-size:13px;padding:9px 16px" onclick="document.getElementById('file-input').click()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Carregar arquivo local
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text3)">Formatos aceitos: Google Sheets · .xlsx · .xls · .csv</p>
     </div>
 
-    <div class="metrics-grid">
-        <div class="metric-card metric-total">
-            <div class="metric-title">Total de Ocorrências</div>
-            <div class="metric-value" id="metric-total">0</div>
+    <!-- Dashboard -->
+    <div id="dashboard-screen" style="display:none">
+      <!-- Banner prontidão -->
+      <div class="prontidao-banner">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <p id="prontidao-text">Nossa equipe respondeu a todas as ocorrências com agilidade — <strong>tempo médio de resposta: —</strong></p>
+      </div>
+
+      <div id="alert-box" style="display:none"></div>
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <div class="filter-bar">
+        <div class="filter-group"><span class="filter-group-label">Usina</span><div id="f-usina" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Fabricante</span><div id="f-fab" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+        <div class="filter-group"><span class="filter-group-label">Status</span><div id="f-status" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-card-title">Causas de falha</div><div id="chart-causas"></div></div>
+        <div class="chart-card"><div class="chart-card-title">Falhas por usina</div><div id="chart-usinas"></div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><div class="chart-card-title">MTTR por usina (dias)</div><div id="chart-mttr"></div></div>
+        <div class="chart-card"><div class="chart-card-title">Tipo de correção</div><div id="chart-tipo"></div></div>
+      </div>
+
+      <!-- Gantt -->
+      <div class="gantt-card">
+        <div class="gantt-header">
+          <div class="gantt-title">Linha do tempo · <span style="color:var(--teal)">▌</span> = Data de atendimento</div>
+          <span id="gantt-range" style="font-size:11px;color:var(--text3)"></span>
         </div>
-        <div class="metric-card metric-open">
-            <div class="metric-title" id="title-status-aberto">Em Aberto</div>
-            <div class="metric-value" id="metric-aberto">0</div>
+        <div id="gantt-chart"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Detalhes operacionais · <span style="color:var(--blue);font-weight:400;text-transform:none;letter-spacing:0">clique no inversor para ver observações</span></span>
+          <span style="font-size:12px;color:var(--text3)" id="table-count"></span>
         </div>
-        <div class="metric-card metric-progress">
-            <div class="metric-title" id="title-status-andamento">Em Andamento</div>
-            <div class="metric-value" id="metric-andamento">0</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="width:68px">ID</th>
+              <th style="width:100px">Usina</th>
+              <th style="width:75px">Inversor</th>
+              <th style="width:88px">Ocorrência</th>
+              <th style="width:90px">Atendimento</th>
+              <th style="width:130px">Causa</th>
+              <th style="width:75px">Impacto</th>
+              <th style="width:52px">Dias</th>
+              <th style="width:82px">Status</th>
+              <th style="width:70px">Ticket</th>
+            </tr></thead>
+            <tbody id="table-body"></tbody>
+          </table>
         </div>
-        <div class="metric-card metric-resolved">
-            <div class="metric-title" id="title-status-resolvido">Resolvidas</div>
-            <div class="metric-value" id="metric-resolvido">0</div>
+        <div id="empty-state" class="empty-state" style="display:none">Nenhum registro para os filtros selecionados.</div>
+        <div class="pager">
+          <span id="pager-info"></span>
+          <div class="pager-btns">
+            <button class="pager-btn" id="btn-prev" onclick="changePage(-1)">← Anterior</button>
+            <button class="pager-btn" id="btn-next" onclick="changePage(1)">Próximo →</button>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+</div>
+</div>
 
-    <div class="filters-container" id="filters-area" style="display: none;">
-        <div class="filter-group">
-            <span class="filter-label">Filtrar por Usina</span>
-            <select class="filter-input" id="filter-usina" onchange="applyFilters()">
-                <option value="all">Todas as Usinas</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <span class="filter-label">Filtrar por Status</span>
-            <select class="filter-input" id="filter-status" onchange="applyFilters()">
-                <option value="all">Todos os Status</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <span class="filter-label">Buscar Equipamento/Falha</span>
-            <input type="text" class="filter-input" id="filter-search" placeholder="Digite para buscar..." onkeyup="applyFilters()">
-        </div>
+<!-- Loading -->
+<div class="loading-overlay" id="loading-overlay" style="display:none">
+  <div class="spinner-lg"></div>
+  <p id="loading-msg">Buscando dados do Google Sheets...</p>
+</div>
+
+<!-- MODAL: Detalhe do inversor -->
+<div class="modal-overlay" id="modal-inv" style="display:none" onclick="if(event.target===this)closeInvModal()">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="inv-modal-title">Inversor —</div>
+      <div class="modal-sub" id="inv-modal-sub"></div>
     </div>
-
-    <div id="loading">Sincronizando dados no ambiente de produção...</div>
-
-    <div class="table-container" id="main-content" style="display: none;">
-        <table>
-            <thead id="table-head">
-            </thead>
-            <tbody id="table-body">
-            </tbody>
-        </table>
+    <div class="modal-body" id="inv-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeInvModal()">Fechar</button>
     </div>
+  </div>
+</div>
 
-    <div class="modal-overlay" id="details-modal" onclick="if(event.target===this) closeModal()">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title-group">
-                    <span class="modal-subtitle">Histórico de Atualizações</span>
-                    <h2 class="modal-title" id="modal-equip-title">Equipamento</h2>
-                </div>
-                <button class="modal-close" onclick="closeModal()">Fechar</button>
-            </div>
-            <div class="modal-body">
-                <div class="history-timeline" id="modal-history">
-                </div>
-            </div>
+<!-- MODAL: Chamados / Tickets -->
+<div class="modal-overlay" id="modal-tickets" style="display:none" onclick="if(event.target===this)closeTicketsModal()">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title">📋 Chamados — NÚMERO_TICKET</div>
+      <div class="modal-sub" id="tickets-modal-sub"></div>
+    </div>
+    <div class="modal-body" id="tickets-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeTicketsModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Token GitHub -->
+<div class="modal-overlay" id="modal-config" style="display:none" onclick="if(event.target===this)closeConfigModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Configurar Token do GitHub</div>
+      <div class="modal-sub">Configure uma vez. O token fica salvo apenas neste navegador.</div>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Como gerar o token</div>
+        <div class="token-step"><div class="token-step-num">1</div><div>Acesse <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a></div></div>
+        <div class="token-step"><div class="token-step-num">2</div><div>Note: <strong style="color:var(--text)">dashboard-om</strong> · Expiration: <strong style="color:var(--text)">No expiration</strong></div></div>
+        <div class="token-step"><div class="token-step-num">3</div><div>Marque ✅ <strong style="color:var(--text)">repo</strong> → clique <strong style="color:var(--text)">Generate token</strong></div></div>
+        <div class="token-step"><div class="token-step-num">4</div><div>Copie o token <code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:11px">ghp_...</code> e cole abaixo</div></div>
+      </div>
+      <div class="field">
+        <label>Personal Access Token</label>
+        <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <div class="field-hint">⚠ Salve imediatamente — o GitHub não mostra o token novamente.</div>
+      </div>
+      <div style="background:var(--bg4);border-radius:var(--radius-sm);padding:9px 12px;font-size:11px;color:var(--text3);line-height:1.7">
+        📦 Repositório: <strong style="color:var(--text)">Fred-Alexandrino / oem</strong><br>
+        📄 Arquivo: <strong style="color:var(--text)">index.html</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConfigModal()">Cancelar</button>
+      <button class="btn btn-load" onclick="saveConfig()">Salvar token</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Publicar -->
+<div class="modal-overlay" id="modal-publish" style="display:none" onclick="if(event.target===this)closePublishModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Publicar no GitHub Pages</div>
+      <div class="modal-sub">O dashboard será enviado ao repositório. Link disponível em ~60s.</div>
+    </div>
+    <div class="modal-body">
+      <div id="pub-status-box" style="display:none"></div>
+      <div id="pub-info">
+        <div style="font-size:13px;color:var(--text2);line-height:2;background:var(--bg4);border-radius:var(--radius-sm);padding:11px 14px">
+          <div>📦 Repositório: <strong style="color:var(--text)">Fred-Alexandrino / oem</strong></div>
+          <div>📊 Registros: <strong id="pub-records" style="color:var(--text)">—</strong></div>
+          <div>🔗 Link: <a href="https://Fred-Alexandrino.github.io/oem/" target="_blank" style="color:var(--blue)">Fred-Alexandrino.github.io/oem/</a></div>
         </div>
+      </div>
     </div>
+    <div class="modal-footer">
+      <button class="btn" id="pub-cancel-btn" onclick="closePublishModal()">Cancelar</button>
+      <button class="btn" id="pub-confirm-btn" onclick="publishToGitHub()" style="background:var(--green);border-color:var(--green);color:#0a1f0a;font-weight:600">
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        Publicar agora
+      </button>
+    </div>
+  </div>
+</div>
 
-    <script>
-        const sheetId = '1VLo8__wxSJVWiUIFd_JTcOnadJlUt440i1M1pC0ehTs';
-        window.dashboardData = [];
-        window.filteredData = [];
-        window.dashboardHeaders = [];
-        window.dynamicStatusNames = {
-            aberto: 'EM ABERTO',
-            andamento: 'EM ANDAMENTO',
-            resolvido: 'RESOLVIDAS'
-        };
-        let sortCol = -1;
-        let sortAsc = true;
-        let usinaIndex = -1;
-        let statusIndex = -1;
+<script>
+// ═══════════════════════════
+// Google Sheets
+// ═══════════════════════════
+const SHEETS_ID  = '1MJdP4JsMH7hj91z_a2sHbfeMIj5IhCnxzYjYrz3Nq7M';
+const SHEETS_GID = '1539484372';
+const SHEETS_CSV = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=csv&gid=${SHEETS_GID}`;
 
-        function fetchData() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('main-content').style.display = 'none';
-            document.getElementById('filters-area').style.display = 'none';
+async function fetchFromSheets() {
+  showLoading('Buscando dados do Google Sheets...');
+  try {
+    const res = await fetch(SHEETS_CSV + '&t=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().length < 10) throw new Error('Planilha vazia ou sem dados');
+    hideLoading();
+    parseCSVAndRender(text, 'Google Sheets');
+  } catch(e) {
+    hideLoading();
+    showStatus('error', `✗ Erro ao acessar Google Sheets: ${e.message}. Verifique se a planilha está pública.`);
+  }
+}
 
-            const oldScript = document.getElementById('gviz-script');
-            if (oldScript) oldScript.remove();
+function parseCSVLine(line) {
+  const result = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result.map(v => v.trim().replace(/^"|"$/g,'').trim());
+}
 
-            const script = document.createElement('script');
-            script.id = 'gviz-script';
-            script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq&callback=processSheetsData`;
-            
-            script.onerror = function() {
-                document.getElementById('loading').textContent = 'Erro de comunicação. O seu servidor web bloqueou a requisição Google Visualization API.';
-            };
+function parseCSVAndRender(csvText, sourceName) {
+  const lines = csvText.split('\n').filter(l => l.trim());
+  if (lines.length < 2) { showStatus('error','Planilha sem linhas de dados.'); return; }
+  const headers = parseCSVLine(lines[0]);
+  const rows = lines.slice(1).map(line => {
+    const vals = parseCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+  processRows(rows, sourceName);
+}
 
-            document.head.appendChild(script);
-        }
+// ═══════════════════════════
+// Arquivo local
+// ═══════════════════════════
+function handleFile(evt) {
+  const file = evt.target.files[0]; if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      if (ext === 'csv') parseCSVAndRender(e.target.result, file.name);
+      else {
+        const wb = XLSX.read(e.target.result, {type:'array', cellDates:false});
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw:true, defval:''});
+        processRows(rows, file.name);
+      }
+    } catch(err) { showStatus('error','Erro ao processar: '+err.message); }
+  };
+  if (ext === 'csv') reader.readAsText(file,'UTF-8'); else reader.readAsArrayBuffer(file);
+  evt.target.value = '';
+}
 
-        window.processSheetsData = function(response) {
-            if (!response || !response.table) {
-                document.getElementById('loading').textContent = 'Falha ao processar os dados da base.';
-                return;
-            }
+// ═══════════════════════════
+// Dados
+// ═══════════════════════════
+const PAGE_SIZE = 10;
+let DATA = [], page = 0;
+let filters = {usina:'Todos', fab:'Todos', status:'Todos'};
+const PALETTE = ['#388bfd','#d29922','#3fb950','#a371f7','#f85149','#39d353','#58a6ff','#e3b341'];
+const USINA_COLORS = {};
 
-            const table = response.table;
-            
-            window.dashboardHeaders = table.cols
-                .map(c => c.label || '')
-                .filter(label => label.trim() !== '');
+// Mapeamento flexível de colunas
+const COL_MAP = {
+  id:       v => /^ID.?FALHA$/i.test(v) || /^ID$/i.test(v),
+  usina:    v => /^USINA/i.test(v) || /^PLANTA/i.test(v),
+  inv:      v => /^INVERSOR/i.test(v) || /^INV$/i.test(v),
+  dataOc:   v => /OCORR/i.test(v) && /DATA/i.test(v),
+  dataAtend:v => /ATEND/i.test(v),
+  causa:    v => /CAUSA/i.test(v),
+  medida:   v => /MEDIDA/i.test(v) || /^A[CÇ][AÃ]O/i.test(v),
+  status:   v => /^STATUS/i.test(v),
+  dataFim:  v => /CONCLUS/i.test(v) || /^DATA.FIM/i.test(v),
+  fab:      v => /^FABRICANTE/i.test(v) || /^MARCA/i.test(v),
+  tipo:     v => /^TIPO/i.test(v),
+  impacto:  v => /IMPACTO/i.test(v) || /INOPER/i.test(v) || /^PERC/i.test(v),
+  dias:     v => /^TEMPO/i.test(v) || /^DIAS/i.test(v) || /DOWNTIME/i.test(v),
+  ticket:   v => /TICKET/i.test(v) || /CHAMADO/i.test(v) || /N.?MERO/i.test(v),
+  obs:      v => /OBS/i.test(v) || /OBSERVA/i.test(v) || /NOTA/i.test(v),
+};
 
-            usinaIndex = window.dashboardHeaders.findIndex(h => h.toLowerCase().includes('usina'));
-            statusIndex = window.dashboardHeaders.findIndex(h => h.toLowerCase().includes('status') || h.toLowerCase().includes('situação'));
+function findCols(headers) {
+  const result = {};
+  for (const [key, testFn] of Object.entries(COL_MAP)) {
+    result[key] = headers.find(h => testFn(h.toString())) || null;
+  }
+  return result;
+}
 
-            const maxCols = window.dashboardHeaders.length;
+function parseDate(val) {
+  if (!val && val !== 0) return null;
+  if (typeof val === 'number') return new Date(Math.round((val-25569)*86400*1000)).toISOString().slice(0,10);
+  const s = val.toString().trim();
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { const y = m[3].length===2?'20'+m[3]:m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  return null;
+}
 
-            window.dashboardData = table.rows.map(row => {
-                let rowData = [];
-                for(let i = 0; i < maxCols; i++) {
-                    const cell = row.c[i];
-                    rowData.push(cell ? (cell.f || cell.v || '') : '');
-                }
-                return rowData;
-            });
+function parseImpacto(val) {
+  if (!val && val !== 0) return null;
+  const s = val.toString().trim();
+  if (!s || s === '—' || s === '-') return null;
+  // Se já é texto descritivo (ex: "Parcial", "Total"), retorna como string
+  if (/[a-záàãâéêíóôõúç]/i.test(s) && !/\d/.test(s)) return s;
+  let n = parseFloat(s.replace(',','.').replace('%',''));
+  if (isNaN(n)) return s;
+  if (n > 1) n = n / 100;
+  return n;
+}
 
-            if (window.dashboardData.length === 0) {
-                document.getElementById('loading').textContent = 'A planilha está conectada, mas não possui registros operacionais.';
-                return;
-            }
+function fmtDate(d) {
+  if (!d || d === '—') return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
 
-            window.filteredData = [...window.dashboardData];
-            initDashboard();
-        }
+function diffDias(d1, d2) {
+  if (!d1 || !d2 || d1==='—' || d2==='—') return null;
+  return Math.round((new Date(d2) - new Date(d1)) / 86400000);
+}
 
-        function initDashboard() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            document.getElementById('filters-area').style.display = 'grid';
-            
-            populateFilters();
-            extractDynamicStatusNames();
-            updateMetrics(window.dashboardData); // Metricas totais
-            renderHeaders();
-            renderTable(window.filteredData);
-        }
+function processRows(rows, sourceName) {
+  if (!rows || !rows.length) { showStatus('error','Planilha vazia.'); return; }
+  const headers = Object.keys(rows[0]);
+  const cols = findCols(headers);
 
-        function extractDynamicStatusNames() {
-            if (statusIndex === -1) return;
-            
-            const uniqueStatuses = [...new Set(window.dashboardData.map(row => String(row[statusIndex] || '').trim()).filter(v => v))];
-            
-            // Map the exact string from the spreadsheet to the categories based on keywords
-            uniqueStatuses.forEach(status => {
-                const lower = status.toLowerCase();
-                if (lower.includes('abert') || lower.includes('pendent')) {
-                    window.dynamicStatusNames.aberto = status;
-                } else if (lower.includes('andamento') || lower.includes('progresso')) {
-                    window.dynamicStatusNames.andamento = status;
-                } else if (lower.includes('resolvid') || lower.includes('concluíd') || lower.includes('fechado')) {
-                    window.dynamicStatusNames.resolvido = status;
-                }
-            });
+  DATA = rows.map((r, i) => {
+    const get = k => cols[k] ? (r[cols[k]] !== undefined ? r[cols[k]] : '') : '';
+    const dataOcStr    = parseDate(get('dataOc'));
+    const dataAtendStr = parseDate(get('dataAtend'));
+    const dataFimStr   = parseDate(get('dataFim'));
+    let dias = parseFloat((get('dias')||'0').toString().replace(',','.').replace(/[^\d.]/g,'')) || 0;
+    dias = Math.round(dias);
+    if (!dias && dataOcStr && dataFimStr)
+      dias = Math.max(0, Math.round((new Date(dataFimStr) - new Date(dataOcStr)) / 86400000));
+    const usina  = (get('usina') || '').toString().trim() || 'Não informado';
+    const status = (get('status') || '').toString().trim() || 'Não informado';
+    return {
+      id:        (get('id') || `FAL-${String(i+1).padStart(3,'0')}`).toString().trim(),
+      usina,
+      inv:       (get('inv')    || '—').toString().trim(),
+      dataOc:    dataOcStr    || '—',
+      dataAtend: dataAtendStr || '—',
+      causa:     (get('causa')  || 'Não informado').toString().trim(),
+      medida:    (get('medida') || '—').toString().trim(),
+      status,
+      dataFim:   dataFimStr   || '—',
+      fab:       (get('fab')    || 'Não informado').toString().trim(),
+      tipo:      (get('tipo')   || 'Campo').toString().trim(),
+      impacto:   parseImpacto(get('impacto')),
+      dias,
+      ticket:    (get('ticket') || '—').toString().trim(),
+      obs:       (get('obs')    || '').toString().trim(),
+    };
+  }).filter(r => r.usina !== 'Não informado' && r.usina !== '');
 
-            // Update UI Titles to match Spreadsheet EXACTLY
-            document.getElementById('title-status-aberto').textContent = window.dynamicStatusNames.aberto.toUpperCase();
-            document.getElementById('title-status-andamento').textContent = window.dynamicStatusNames.andamento.toUpperCase();
-            document.getElementById('title-status-resolvido').textContent = window.dynamicStatusNames.resolvido.toUpperCase();
-        }
+  if (!DATA.length) { showStatus('error','Nenhuma linha válida. Verifique os nomes das colunas.'); return; }
 
-        function populateFilters() {
-            const usinaSelect = document.getElementById('filter-usina');
-            const statusSelect = document.getElementById('filter-status');
-            
-            // Clear existing options except first
-            usinaSelect.innerHTML = '<option value="all">Todas as Usinas</option>';
-            statusSelect.innerHTML = '<option value="all">Todos os Status</option>';
+  Object.keys(USINA_COLORS).forEach(k => delete USINA_COLORS[k]);
+  [...new Set(DATA.map(r=>r.usina))].forEach((u,i) => USINA_COLORS[u] = PALETTE[i%PALETTE.length]);
 
-            if (usinaIndex !== -1) {
-                const usinas = [...new Set(window.dashboardData.map(row => String(row[usinaIndex] || '').trim()).filter(v => v))].sort();
-                usinas.forEach(usina => {
-                    const option = document.createElement('option');
-                    option.value = usina;
-                    option.textContent = usina;
-                    usinaSelect.appendChild(option);
-                });
-            }
+  filters = {usina:'Todos', fab:'Todos', status:'Todos'};
+  page = 0;
 
-            if (statusIndex !== -1) {
-                const statuses = [...new Set(window.dashboardData.map(row => String(row[statusIndex] || '').trim()).filter(v => v))].sort();
-                statuses.forEach(status => {
-                    const option = document.createElement('option');
-                    option.value = status;
-                    option.textContent = status;
-                    statusSelect.appendChild(option);
-                });
-            }
-        }
+  document.getElementById('empty-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+  document.getElementById('btn-export').disabled = false;
+  document.getElementById('btn-tickets').disabled = false;
 
-        function applyFilters() {
-            const filterUsina = document.getElementById('filter-usina').value;
-            const filterStatus = document.getElementById('filter-status').value;
-            const filterSearch = document.getElementById('filter-search').value.toLowerCase().trim();
+  const usinas = new Set(DATA.map(r=>r.usina));
+  const now = new Date().toLocaleString('pt-BR');
+  const src = sourceName==='Google Sheets' ? '🟢 Google Sheets' : `📁 ${sourceName}`;
+  document.getElementById('topbar-sub').textContent = `${DATA.length} registros · ${usinas.size} usinas · Fonte: ${src} · ${now}`;
+  showStatus('ok', `✓ ${DATA.length} registros carregados de "${sourceName}".`);
 
-            window.filteredData = window.dashboardData.filter(row => {
-                let matchUsina = true;
-                let matchStatus = true;
-                let matchSearch = true;
+  // Prontidão
+  const comAtend = DATA.filter(r => r.dataAtend !== '—' && r.dataOc !== '—');
+  if (comAtend.length) {
+    const tempos = comAtend.map(r => diffDias(r.dataOc, r.dataAtend)).filter(d => d !== null && d >= 0);
+    const mediaResp = tempos.length ? (tempos.reduce((a,b)=>a+b,0)/tempos.length).toFixed(1) : '—';
+    const textoMedia = mediaResp === '0.0' || mediaResp === '0' ? 'no mesmo dia' : `${mediaResp} dia(s)`;
+    document.getElementById('prontidao-text').innerHTML =
+      `✅ Nossa equipe respondeu a <strong style="color:var(--teal)">${comAtend.length} de ${DATA.length} ocorrências</strong> registradas — tempo médio de resposta: <strong style="color:var(--teal)">${textoMedia}</strong>`;
+  } else {
+    document.getElementById('prontidao-text').innerHTML =
+      `✅ Nossa equipe estava de prontidão para todas as <strong style="color:var(--teal)">${DATA.length} ocorrências</strong> registradas.`;
+  }
 
-                if (usinaIndex !== -1 && filterUsina !== 'all') {
-                    matchUsina = String(row[usinaIndex] || '').trim() === filterUsina;
-                }
+  updatePublishBtn();
+  render();
+}
 
-                if (statusIndex !== -1 && filterStatus !== 'all') {
-                    matchStatus = String(row[statusIndex] || '').trim() === filterStatus;
-                }
+// ═══════════════════════════
+// Modal: Detalhe do inversor
+// ═══════════════════════════
+function openInvModal(idx) {
+  const r = DATA[idx];
+  if (!r) return;
+  document.getElementById('inv-modal-title').textContent = `${r.inv} — ${r.usina}`;
+  document.getElementById('inv-modal-sub').textContent = `Ocorrência ${r.id} · ${fmtDate(r.dataOc)}`;
 
-                if (filterSearch !== '') {
-                    // Search in all text columns
-                    matchSearch = row.some(cellValue => String(cellValue || '').toLowerCase().includes(filterSearch));
-                }
+  const diasResp = diffDias(r.dataOc, r.dataAtend);
+  const atendText = r.dataAtend !== '—'
+    ? `${fmtDate(r.dataAtend)}${diasResp !== null ? ` (${diasResp === 0 ? 'mesmo dia' : diasResp + ' dia(s) após o evento'})` : ''}`
+    : 'Não registrado';
 
-                return matchUsina && matchStatus && matchSearch;
-            });
+  const impactoStr = r.impacto === null ? '—'
+    : typeof r.impacto === 'number' ? `${(r.impacto*100).toFixed(0)}%`
+    : r.impacto;
 
-            // Re-apply sorting to filtered data if a sort is active
-            if (sortCol !== -1) {
-                sortDataArray(sortCol, sortAsc);
-            } else {
-                renderTable(window.filteredData);
-            }
-            
-            // Metrics update based on filtered data (Optional: keep total fixed, update filtered metric)
-            updateMetrics(window.filteredData);
-        }
+  document.getElementById('inv-modal-body').innerHTML = `
+    <div class="inv-atend-box">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div>
+        <div style="font-size:11px;color:var(--teal);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Data de Atendimento</div>
+        <div style="font-size:13px;color:var(--text);font-weight:500">${atendText}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Equipe em prontidão — resposta imediata à ocorrência</div>
+      </div>
+    </div>
+    <div class="inv-detail-grid">
+      <div class="inv-detail-item"><div class="inv-detail-label">ID da Falha</div><div class="inv-detail-value" style="color:var(--blue)">${r.id}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Status</div><div class="inv-detail-value">${r.status}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Data Ocorrência</div><div class="inv-detail-value">${fmtDate(r.dataOc)}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Data Conclusão</div><div class="inv-detail-value">${fmtDate(r.dataFim)}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Causa Provável</div><div class="inv-detail-value">${r.causa}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Medida Adotada</div><div class="inv-detail-value">${r.medida}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Impacto</div><div class="inv-detail-value">${impactoStr}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Dias inoperante</div><div class="inv-detail-value">${r.dias}d</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Fabricante</div><div class="inv-detail-value">${r.fab}</div></div>
+      <div class="inv-detail-item"><div class="inv-detail-label">Nº Ticket</div><div class="inv-detail-value" style="color:var(--teal)">${r.ticket}</div></div>
+    </div>
+    ${r.obs ? `
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Observações</div>
+    <div class="inv-obs-box">${r.obs}</div>` : `<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhuma observação registrada para esta ocorrência.</div>`}
+  `;
+  document.getElementById('modal-inv').style.display = 'flex';
+}
+function closeInvModal() { document.getElementById('modal-inv').style.display = 'none'; }
 
-        function updateMetrics(dataArray) {
-            const total = dataArray.length;
-            let aberto = 0, andamento = 0, resolvido = 0;
-            
-            if (statusIndex !== -1) {
-                dataArray.forEach(row => {
-                    const val = String(row[statusIndex] || '').toLowerCase();
-                    if (val.includes('abert') || val.includes('pendent')) aberto++;
-                    else if (val.includes('andamento') || val.includes('progresso')) andamento++;
-                    else if (val.includes('resolvid') || val.includes('concluíd') || val.includes('fechado')) resolvido++;
-                });
-            }
-            
-            document.getElementById('metric-total').textContent = total;
-            document.getElementById('metric-aberto').textContent = statusIndex !== -1 ? aberto : '-';
-            document.getElementById('metric-andamento').textContent = statusIndex !== -1 ? andamento : '-';
-            document.getElementById('metric-resolvido').textContent = statusIndex !== -1 ? resolvido : '-';
-        }
+// ═══════════════════════════
+// Modal: Tickets
+// ═══════════════════════════
+function openTicketsModal() {
+  const data = filtered();
+  const comTicket = data.filter(r => r.ticket && r.ticket !== '—');
+  document.getElementById('tickets-modal-sub').textContent =
+    `${comTicket.length} chamado(s) · ${data.length} ocorrências filtradas`;
+  if (!comTicket.length) {
+    document.getElementById('tickets-modal-body').innerHTML =
+      '<div style="color:var(--text3);font-size:13px;padding:8px 0">Nenhum ticket registrado nos dados filtrados.</div>';
+  } else {
+    document.getElementById('tickets-modal-body').innerHTML = comTicket.map(r => `
+      <div class="ticket-item">
+        <div class="ticket-num">${r.ticket}</div>
+        <div class="ticket-info">
+          <div class="ticket-inv">${r.inv} · ${r.id}</div>
+          <div class="ticket-usina">${r.usina} · ${fmtDate(r.dataOc)}${r.dataAtend!=='—'?' · Atend: '+fmtDate(r.dataAtend):''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.causa}</div>
+        </div>
+        <div>${r.status.toLowerCase().includes('conclu')
+          ? '<span class="badge badge-green">✓</span>'
+          : '<span class="badge badge-red">●</span>'}</div>
+      </div>`).join('');
+  }
+  document.getElementById('modal-tickets').style.display = 'flex';
+}
+function closeTicketsModal() { document.getElementById('modal-tickets').style.display = 'none'; }
 
-        function renderHeaders() {
-            const thead = document.getElementById('table-head');
-            thead.innerHTML = '';
-            const tr = document.createElement('tr');
-            
-            window.dashboardHeaders.forEach((header, colIndex) => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                th.onclick = () => handleSortClick(colIndex);
-                
-                if (sortCol === colIndex) {
-                    th.textContent += sortAsc ? ' ↑' : ' ↓';
-                }
-                
-                tr.appendChild(th);
-            });
-            thead.appendChild(tr);
-        }
+// ═══════════════════════════
+// GitHub
+// ═══════════════════════════
+const GH = { user:'Fred-Alexandrino', repo:'oem', file:'index.html', token:'' };
+function loadConfig() {
+  try { const s=localStorage.getItem('om_gh_config'); if(s) Object.assign(GH,JSON.parse(s)); } catch(e){}
+  updateTokenIndicator();
+}
+function saveConfig() {
+  const t = document.getElementById('cfg-token').value.trim();
+  if (!t) { alert('Cole o token gerado no GitHub.'); return; }
+  GH.token = t;
+  localStorage.setItem('om_gh_config', JSON.stringify(GH));
+  closeConfigModal(); updateTokenIndicator(); updatePublishBtn();
+  showStatus('ok','✓ Token salvo com sucesso.');
+}
+function updateTokenIndicator() {
+  document.getElementById('tok-indicator').innerHTML = GH.token
+    ? '<span class="tok-dot tok-ok"></span>Token'
+    : '<span class="tok-dot tok-no"></span>Token';
+}
+function updatePublishBtn() {
+  const btn = document.getElementById('btn-publish');
+  btn.disabled = !(DATA.length > 0 && GH.token);
+}
+function openConfigModal() { loadConfig(); document.getElementById('cfg-token').value=GH.token; document.getElementById('modal-config').style.display='flex'; }
+function closeConfigModal() { document.getElementById('modal-config').style.display='none'; }
 
-        function handleSortClick(colIndex) {
-            if (sortCol === colIndex) {
-                sortAsc = !sortAsc;
-            } else {
-                sortCol = colIndex;
-                sortAsc = true;
-            }
-            sortDataArray(colIndex, sortAsc);
-        }
+let currentSHA = '';
+async function openPublishModal() {
+  loadConfig();
+  if (!GH.token) { openConfigModal(); return; }
+  document.getElementById('pub-records').textContent = `${DATA.length} registros`;
+  document.getElementById('pub-status-box').style.display = 'none';
+  document.getElementById('pub-confirm-btn').disabled = false;
+  document.getElementById('pub-confirm-btn').innerHTML = `<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg> Publicar agora`;
+  document.getElementById('pub-cancel-btn').disabled = false;
+  document.getElementById('modal-publish').style.display = 'flex';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,
+      {headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json'}});
+    currentSHA = r.ok ? (await r.json()).sha : '';
+  } catch(e) { currentSHA=''; }
+}
+function closePublishModal() { document.getElementById('modal-publish').style.display='none'; }
+function setPubStatus(type,msg) {
+  const box=document.getElementById('pub-status-box');
+  box.style.display='flex';
+  box.className=`pub-status ${type==='ok'?'pub-ok':type==='err'?'pub-err':'pub-info'}`;
+  box.innerHTML=type==='loading'?`<div class="spinner"></div><span>${msg}</span>`:`<span>${msg}</span>`;
+}
+async function publishToGitHub() {
+  const cb=document.getElementById('pub-confirm-btn'),xb=document.getElementById('pub-cancel-btn');
+  cb.disabled=true;xb.disabled=true;cb.innerHTML='<div class="spinner"></div> Publicando...';
+  setPubStatus('loading','Conectando ao GitHub...');
+  try {
+    const encoded=btoa(unescape(encodeURIComponent(document.documentElement.outerHTML)));
+    setPubStatus('loading','Enviando para o repositório...');
+    const body={message:`Dashboard O&M — ${new Date().toLocaleString('pt-BR')} (${DATA.length} registros)`,content:encoded,branch:'main'};
+    if(currentSHA)body.sha=currentSHA;
+    const res=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{
+      method:'PUT',headers:{'Authorization':`Bearer ${GH.token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const data=await res.json();
+    if(res.ok){
+      currentSHA=data.content?.sha||currentSHA;
+      setPubStatus('ok','✓ Publicado com sucesso!');
+      document.getElementById('pub-info').innerHTML=`<div style="text-align:center;padding:10px 0"><div style="margin-bottom:10px;color:var(--text3);font-size:13px">🎉 Dashboard ao vivo em:</div><a href="https://${GH.user}.github.io/${GH.repo}/" target="_blank" style="color:var(--blue);font-weight:600;font-size:14px">https://${GH.user}.github.io/${GH.repo}/</a><div style="margin-top:8px;font-size:11px;color:var(--text3)">Disponível em ~60s · Commit: ${data.commit?.sha?.slice(0,7)||'—'}</div></div>`;
+      cb.innerHTML='✓ Concluído';xb.textContent='Fechar';xb.disabled=false;
+    } else {
+      const msgs={401:'Token inválido.',404:`Repositório não encontrado: ${GH.user}/${GH.repo}`,409:'Conflito — feche e tente novamente.'};
+      setPubStatus('err',`✗ ${msgs[res.status]||`Erro ${res.status}: ${data.message}`}`);
+      cb.disabled=false;cb.innerHTML='Tentar novamente';xb.disabled=false;
+    }
+  } catch(e) { setPubStatus('err',`✗ Conexão: ${e.message}`);cb.disabled=false;cb.innerHTML='Tentar novamente';xb.disabled=false; }
+}
 
-        function sortDataArray(colIndex, ascending) {
-            window.filteredData.sort((a, b) => {
-                let valA = String(a[colIndex] || '');
-                let valB = String(b[colIndex] || '');
-                
-                // Try numeric sort first
-                if (!isNaN(valA) && !isNaN(valB) && valA.trim() !== '' && valB.trim() !== '') {
-                    return ascending ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
-                }
-                
-                // Fallback to string sort
-                return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            });
-            
-            renderHeaders();
-            renderTable(window.filteredData);
-        }
+// ═══════════════════════════
+// Render
+// ═══════════════════════════
+function uniq(arr,k){return['Todos',...new Set(arr.map(r=>r[k]))]}
+function filtered(){return DATA.filter(r=>{
+  if(filters.usina!=='Todos'&&r.usina!==filters.usina)return false;
+  if(filters.fab!=='Todos'&&r.fab!==filters.fab)return false;
+  if(filters.status!=='Todos'&&r.status!==filters.status)return false;
+  return true;
+})}
+function setFilter(k,v){filters[k]=v;page=0;render();}
 
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            
-            data.forEach((row) => {
-                const tr = document.createElement('tr');
-                
-                window.dashboardHeaders.forEach((header, colIndex) => {
-                    const td = document.createElement('td');
-                    let cellValue = String(row[colIndex] || '');
-                    
-                    if (header.toLowerCase().includes('status') || header.toLowerCase().includes('situação')) {
-                        const valLower = cellValue.toLowerCase();
-                        let statusClass = 'status-default';
-                        if (valLower.includes('abert') || valLower.includes('pendent')) statusClass = 'status-aberto';
-                        else if (valLower.includes('andamento') || valLower.includes('progresso')) statusClass = 'status-andamento';
-                        else if (valLower.includes('resolvid') || valLower.includes('concluíd') || valLower.includes('fechado')) statusClass = 'status-resolvido';
-                        
-                        td.innerHTML = `<span class="status-badge ${statusClass}">${cellValue}</span>`;
-                    } else if (colIndex === 3) {
-                        const span = document.createElement('span');
-                        span.className = 'clickable-equip';
-                        span.textContent = cellValue;
-                        span.onclick = () => openModal(cellValue);
-                        td.appendChild(span);
-                    } else {
-                        if (colIndex === 0 || colIndex === 1) {
-                            td.style.color = 'var(--text-main)';
-                            td.style.fontWeight = '500';
-                        }
-                        td.textContent = cellValue;
-                    }
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-        }
+function renderPills(id,vals,key){
+  document.getElementById(id).innerHTML=vals.map(v=>`<button class="pill${filters[key]===v?' active':''}" onclick="setFilter('${key}','${v.replace(/'/g,"\\'")}')">${v}</button>`).join('');
+}
 
-        function openModal(equipName) {
-            const modal = document.getElementById('details-modal');
-            document.getElementById('modal-equip-title').textContent = equipName;
-            
-            const equipRows = window.dashboardData.filter(row => String(row[3] || '') === equipName);
-            
-            const historyContainer = document.getElementById('modal-history');
-            historyContainer.innerHTML = '';
-            
-            if (equipRows.length === 0) {
-                historyContainer.innerHTML = '<div class="history-item"><div class="history-action">Nenhuma ação encontrada.</div></div>';
-            } else {
-                equipRows.forEach((row, idx) => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    
-                    const refInfo = row[0] || `Registro #${idx + 1}`;
-                    const actionVal = row[7] || 'Sem detalhes de ação (Coluna H vazia).';
-                    
-                    item.innerHTML = `
-                        <div class="history-date">
-                            <strong>Intervenção / Ref:</strong> ${refInfo}
-                        </div>
-                        <div class="history-action">${actionVal}</div>
-                    `;
-                    historyContainer.appendChild(item);
-                });
-            }
-            
-            modal.style.display = 'flex';
-        }
+function renderKPIs(data){
+  const total=data.length, invs=new Set(data.map(r=>r.inv)).size;
+  const dias=data.reduce((s,r)=>s+r.dias,0);
+  const open=data.filter(r=>!r.status.toLowerCase().includes('conclu')).length;
+  const done=total-open, mttr=total>0?(dias/total).toFixed(1):0;
+  const comAtend=data.filter(r=>r.dataAtend!=='—'&&r.dataOc!=='—').length;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total ocorrências</div><div class="kpi-value">${total}</div><div class="kpi-meta">${invs} inversores afetados</div></div>
+    <div class="kpi amber"><div class="kpi-label">Dias inoperantes</div><div class="kpi-value">${dias}</div><div class="kpi-meta">dias acumulados</div></div>
+    <div class="kpi red"><div class="kpi-label">MTTR médio</div><div class="kpi-value">${mttr}</div><div class="kpi-meta">dias por ocorrência</div></div>
+    <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${done}</div><div class="kpi-meta">${open>0?open+' em aberto':'todos resolvidos'}</div></div>
+    <div class="kpi teal"><div class="kpi-label">Atendimentos</div><div class="kpi-value">${comAtend}</div><div class="kpi-meta">de ${total} ocorrências</div></div>`;
+}
 
-        function closeModal() {
-            document.getElementById('details-modal').style.display = 'none';
-        }
+function renderAlert(data){
+  const box=document.getElementById('alert-box');
+  const causes={};data.forEach(r=>causes[r.causa]=(causes[r.causa]||0)+1);
+  const top=Object.entries(causes).sort((a,b)=>b[1]-a[1])[0];
+  if(top&&top[1]/data.length>=0.6){
+    box.style.display='flex';box.className='alert-banner alert-red';
+    box.innerHTML=`<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong style="color:var(--red)">Padrão crítico:</strong> ${Math.round(top[1]/data.length*100)}% das ocorrências por <strong style="color:var(--red)">${top[0]}</strong>.</div>`;
+  } else box.style.display='none';
+}
 
-        document.addEventListener('DOMContentLoaded', fetchData);
-    </script>
+function renderBarChart(id,data,groupKey,colorFn){
+  const counts={};data.forEach(r=>{const k=r[groupKey];counts[k]=(counts[k]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?sorted[0][1]:1;
+  const el=document.getElementById(id);
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  el.innerHTML=sorted.map(([label,n])=>`<div class="bar-row"><div class="bar-lbl" title="${label}">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/max*100)}%;background:${colorFn?colorFn(label):'#388bfd'}">${n}</div></div><div class="bar-count">${n}</div></div>`).join('');
+}
+
+function renderMTTR(data){
+  const sum={},cnt={};data.forEach(r=>{sum[r.usina]=(sum[r.usina]||0)+r.dias;cnt[r.usina]=(cnt[r.usina]||0)+1;});
+  const rows=Object.keys(sum).map(u=>[u,sum[u]/cnt[u]]).sort((a,b)=>b[1]-a[1]);
+  const max=rows[0]?rows[0][1]:1;
+  const el=document.getElementById('chart-mttr');
+  if(!rows.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  el.innerHTML=rows.map(([u,avg])=>`<div class="bar-row"><div class="bar-lbl" title="${u}">${u}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(avg/max*100)}%;background:${USINA_COLORS[u]||'#388bfd'}">${avg.toFixed(1)}d</div></div></div>`).join('');
+}
+
+function renderTipo(data){
+  const counts={};data.forEach(r=>{counts[r.tipo]=(counts[r.tipo]||0)+1;});
+  const total=data.length,colors=['#388bfd','#3fb950','#d29922','#a371f7','#f85149'],keys=Object.keys(counts);
+  const el=document.getElementById('chart-tipo');
+  if(!total){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados</div>';return;}
+  const cx=60,cy=60,r=50,ir=30;let angle=-Math.PI/2;
+  const arcs=keys.map((k,i)=>{
+    const frac=counts[k]/total,da=frac*2*Math.PI;
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);angle+=da;
+    const x2=cx+r*Math.cos(angle),y2=cy+r*Math.sin(angle);
+    const x3=cx+ir*Math.cos(angle),y3=cy+ir*Math.sin(angle);
+    const x4=cx+ir*Math.cos(angle-da),y4=cy+ir*Math.sin(angle-da);
+    return{k,n:counts[k],color:colors[i%colors.length],
+      path:`M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${frac>.5?1:0},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${ir},${ir} 0 ${frac>.5?1:0},0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`};
+  });
+  el.innerHTML=`<div class="donut-wrap"><svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${arcs.map(a=>`<path d="${a.path}" fill="${a.color}"/>`).join('')}<text x="60" y="56" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="700">${total}</text><text x="60" y="69" text-anchor="middle" fill="#6e7681" font-size="10">eventos</text></svg><div class="donut-legend">${keys.map((k,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[i%colors.length]}"></div><span>${k}</span><span class="legend-val">${counts[k]}</span></div>`).join('')}</div></div>`;
+}
+
+function renderGantt(data){
+  const el=document.getElementById('gantt-chart');
+  const valid=data.filter(r=>r.dataOc!=='—'&&r.dataFim!=='—');
+  if(!valid.length){el.innerHTML='<div style="color:var(--text3);font-size:12px">Sem dados com datas completas</div>';return;}
+  const allDates=valid.flatMap(r=>{
+    const ds=[new Date(r.dataOc),new Date(r.dataFim)];
+    if(r.dataAtend&&r.dataAtend!=='—')ds.push(new Date(r.dataAtend));
+    return ds;
+  });
+  const minD=new Date(Math.min(...allDates)),maxD=new Date(Math.max(...allDates)),totalMs=Math.max(maxD-minD,1);
+  const months=[];let cur=new Date(minD.getFullYear(),minD.getMonth(),1);
+  while(cur<=maxD){months.push(cur.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+  document.getElementById('gantt-range').textContent=`${minD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})} — ${maxD.toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}`;
+  const sorted=[...valid].sort((a,b)=>a.dataOc.localeCompare(b.dataOc));
+  el.innerHTML=`
+    <div class="gantt-row" style="margin-bottom:7px">
+      <div class="gantt-lbl"></div>
+      <div style="flex:1;display:flex">${months.map(m=>`<div style="flex:1;font-size:10px;color:var(--text3);border-left:1px solid var(--border);padding-left:4px">${m}</div>`).join('')}</div>
+    </div>
+    ${sorted.map(r=>{
+      const s=new Date(r.dataOc),e=new Date(r.dataFim);
+      const left=((s-minD)/totalMs*100).toFixed(2);
+      const width=Math.max(((e-s)/totalMs*100).toFixed(2),.5);
+      let atendMarker='';
+      if(r.dataAtend&&r.dataAtend!=='—'){
+        const aLeft=((new Date(r.dataAtend)-minD)/totalMs*100).toFixed(2);
+        atendMarker=`<div class="gantt-atend" style="left:${aLeft}%" title="Atendimento: ${fmtDate(r.dataAtend)}"></div>`;
+      }
+      return`<div class="gantt-row"><div class="gantt-lbl">${r.id}</div><div class="gantt-track"><div class="gantt-bar" style="left:${left}%;width:${width}%;background:${USINA_COLORS[r.usina]||'#388bfd'};opacity:.85" title="${r.usina}·${r.inv}·${r.dias}d">${r.inv}</div>${atendMarker}</div></div>`;
+    }).join('')}
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      ${Object.entries(USINA_COLORS).map(([u,c])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;background:${c};border-radius:2px;display:inline-block"></span>${u}</div>`).join('')}
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--teal);margin-left:8px"><span style="width:3px;height:14px;background:var(--teal);border-radius:1px;display:inline-block"></span>Data de atendimento</div>
+    </div>`;
+}
+
+function fmtImpacto(val){
+  if(val===null||val===undefined)return'—';
+  if(typeof val==='number')return`${(val*100).toFixed(0)}%`;
+  return val;
+}
+
+function renderTable(data){
+  // Mapeia índice global para filtrado (para modal)
+  const globalData = filtered(); // mesmo que data aqui
+  const start=page*PAGE_SIZE, slice=data.slice(start,start+PAGE_SIZE);
+  const tbody=document.getElementById('table-body'), empty=document.getElementById('empty-state');
+  document.getElementById('table-count').textContent=`${data.length} registros`;
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('pager-info').textContent='';document.getElementById('btn-prev').disabled=true;document.getElementById('btn-next').disabled=true;return;}
+  empty.style.display='none';
+
+  tbody.innerHTML=slice.map((r,si)=>{
+    // Índice global em DATA para o modal
+    const globalIdx = DATA.indexOf(r);
+    const cls=r.dias>=25?'row-high':r.dias>=15?'row-med':'';
+    const isConcluido=r.status.toLowerCase().includes('conclu');
+    const statusBadge=isConcluido?'<span class="badge badge-green">✓ Concluído</span>':'<span class="badge badge-red">● Aberto</span>';
+
+    // Atendimento: badge teal com data
+    const atendCell = r.dataAtend!=='—'
+      ? `<span class="badge badge-teal" style="font-size:10px">${fmtDate(r.dataAtend)}</span>`
+      : '<span style="color:var(--text3);font-size:12px">—</span>';
+
+    // Impacto
+    const impCell = fmtImpacto(r.impacto);
+
+    // Ticket
+    const ticketCell = r.ticket!=='—'
+      ? `<span class="badge badge-blue" style="font-size:10px;font-family:monospace">${r.ticket}</span>`
+      : '<span style="color:var(--text3)">—</span>';
+
+    return`<tr class="${cls}">
+      <td><span class="id-chip">${r.id}</span></td>
+      <td title="${r.usina}"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${USINA_COLORS[r.usina]||'#888'};flex-shrink:0"></span>${r.usina}</span></td>
+      <td><button class="inv-btn" onclick="openInvModal(${globalIdx})" title="Ver detalhes e observações">${r.inv}</button></td>
+      <td>${fmtDate(r.dataOc)}</td>
+      <td>${atendCell}</td>
+      <td title="${r.causa}">${r.causa}</td>
+      <td>${impCell}</td>
+      <td style="font-weight:600;color:${r.dias>=25?'var(--red)':r.dias>=15?'var(--amber)':'var(--text)'}">${r.dias}d</td>
+      <td>${statusBadge}</td>
+      <td>${ticketCell}</td>
+    </tr>`;
+  }).join('');
+
+  const end=Math.min(start+PAGE_SIZE,data.length);
+  document.getElementById('pager-info').textContent=`${start+1}–${end} de ${data.length}`;
+  document.getElementById('btn-prev').disabled=page===0;
+  document.getElementById('btn-next').disabled=end>=data.length;
+}
+
+function changePage(d){const data=filtered();page=Math.max(0,Math.min(Math.ceil(data.length/PAGE_SIZE)-1,page+d));renderTable(data);}
+
+function render(){
+  const data=filtered();
+  renderPills('f-usina',uniq(DATA,'usina'),'usina');
+  renderPills('f-fab',uniq(DATA,'fab'),'fab');
+  renderPills('f-status',['Todos',...new Set(DATA.map(r=>r.status))],'status');
+  renderKPIs(data);renderAlert(data);
+  renderBarChart('chart-causas',data,'causa',()=>'#388bfd');
+  renderBarChart('chart-usinas',data,'usina',u=>USINA_COLORS[u]||'#388bfd');
+  renderMTTR(data);renderTipo(data);renderGantt(data);renderTable(data);
+}
+
+function exportCSV(){
+  const data=filtered();
+  const csv=[['ID','Usina','Inversor','Ocorrência','Atendimento','Causa','Medida','Impacto','Dias','Status','Ticket','Fabricante'],
+    ...data.map(r=>[r.id,r.usina,r.inv,fmtDate(r.dataOc),fmtDate(r.dataAtend),r.causa,r.medida,fmtImpacto(r.impacto),r.dias,r.status,r.ticket,r.fab])]
+    .map(row=>row.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='falhas_inversores.csv';a.click();
+}
+
+function showLoading(msg){document.getElementById('loading-msg').textContent=msg;document.getElementById('loading-overlay').style.display='flex';}
+function hideLoading(){document.getElementById('loading-overlay').style.display='none';}
+function showStatus(type,msg){
+  const el=document.getElementById('status-msg');el.style.display='block';
+  const c=type==='ok'?{bg:'rgba(63,185,80,.1)',b:'rgba(63,185,80,.3)',t:'#3fb950'}
+           :type==='error'?{bg:'rgba(248,81,73,.1)',b:'rgba(248,81,73,.3)',t:'#f85149'}
+           :{bg:'rgba(210,153,34,.1)',b:'rgba(210,153,34,.3)',t:'#d29922'};
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:${c.bg};border:1px solid ${c.b};border-radius:6px;margin-bottom:14px;font-size:12px;color:${c.t}">${msg}</div>`;
+  if(type==='ok')setTimeout(()=>el.style.display='none',5000);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadConfig();
+  document.body.addEventListener('dragover',e=>e.preventDefault());
+  document.body.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f],value:''}});});
+});
+</script>
 </body>
-</html>"""
-
-with open("Dashboard_GridCo_Bypass_Filtros.html", "w", encoding="utf-8") as f:
-    f.write(html_code)
-
-print("Arquivo gerado com JSONP e Filtros.")
+</html>
