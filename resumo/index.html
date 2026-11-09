@@ -145,7 +145,7 @@ const b64d = (t) => decodeURIComponent(escape(atob(t.replace(/\n/g, ""))));
 function ghFetch(path, opt) {
   const c = cfg();
   return fetch(`https://api.github.com/repos/${c.repo}/contents/${path}`, Object.assign({}, opt, {
-    headers: { Authorization: "Bearer " + c.gh, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "content-type": "application/json" }
+    headers: { Authorization: "Bearer " + c.gh.replace(/[^\x21-\x7E]/g, ""), Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "content-type": "application/json" }
   }));
 }
 function stamp() {
@@ -195,7 +195,7 @@ async function generateNow() {
   if (!c.sec) { showErr("Falta a senha do servidor (Configurações)."); $("nowbox").hidden = false; return; }
   $("status").textContent = "Pedindo ao servidor do WhatsApp…";
   try {
-    const r = await fetch(c.srv + "/api/enviar-resumo", { method: "POST", headers: { "x-webhook-secret": c.sec } });
+    const r = await fetch(c.srv + "/api/enviar-resumo", { method: "POST", headers: { "x-webhook-secret": c.sec.replace(/[^\x21-\x7E]/g, "") } });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.erro || ("Servidor respondeu " + r.status));
     $("status").textContent = `Enviado (${j.total} mensagens de ${j.grupos} grupos). Aguardando o Claude…`;
