@@ -43,6 +43,8 @@
     <button class="pri" id="copy">Copiar resumo</button>
     <button id="copyPrompt">Copiar p/ colar no Gemini/Claude</button>
     <button id="again">Refazer</button>
+    <button class="pri" id="listen">🔊 Ouvir</button><button id="pause" hidden>⏸ Pausar</button><button id="stopL" hidden>⏹ Parar</button>
+    <select id="rate" title="Velocidade" style="width:auto;padding:8px;margin:10px 8px 0 0"><option value="0.9">0,9×</option><option value="1" selected>1×</option><option value="1.15">1,15×</option><option value="1.3">1,3×</option><option value="1.5">1,5×</option></select>
   </div>
 
   <details>
@@ -240,6 +242,51 @@ window.addEventListener("message", (e) => {
   $("copy").hidden = false;
   route();
 });
+
+
+// ── Leitor em áudio (voz pt-BR do navegador) ──
+const synth = window.speechSynthesis;
+let speaking = false, queue = [], qi = 0, curVoice = null;
+function pickVoice() {
+  if (!synth) return null;
+  const vs = synth.getVoices();
+  return vs.find((v) => /pt[-_]BR/i.test(v.lang) && /natural|neural|google|online/i.test(v.name)) || vs.find((v) => /pt[-_]BR/i.test(v.lang)) || vs.find((v) => /^pt/i.test(v.lang)) || null;
+}
+function speakText(t) {
+  return t.replace(/[*_`#]/g, "").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+    .replace(/^\s*[-•]\s*/gm, "").replace(/\bINV\b/g, "inversor").replace(/\bUFV\b/g, "usina").replace(/\bO&M\b/g, "O e M")
+    .replace(/(\d{1,2})\/(\d{1,2})(?![\d/])/g, (m, d, mo) => { const M = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"][+mo]; return M ? (+d) + " de " + M : m; });
+}
+function chunks(t) {
+  const out = [];
+  for (const line of speakText(t).split(/\n+/)) {
+    let l = line.trim(); if (!l) continue;
+    while (l.length > 220) { let k = l.lastIndexOf(". ", 220); if (k < 80) k = l.lastIndexOf(", ", 220); if (k < 80) k = l.lastIndexOf(" ", 220); if (k < 1) k = 220; out.push(l.slice(0, k + 1)); l = l.slice(k + 1).trim(); }
+    if (l) out.push(l);
+  }
+  return out;
+}
+function playNext() {
+  if (!speaking) return;
+  if (qi >= queue.length) { stopListen(); return; }
+  const u = new SpeechSynthesisUtterance(queue[qi++]);
+  u.lang = "pt-BR"; if (curVoice) u.voice = curVoice; u.rate = parseFloat($("rate").value) || 1;
+  u.onend = playNext; u.onerror = (e) => { if (e.error !== "canceled" && e.error !== "interrupted") playNext(); };
+  synth.speak(u);
+}
+function startListen() {
+  if (!synth) { showErr("Este navegador não tem leitura em voz."); return; }
+  if (!summary) return;
+  synth.cancel(); curVoice = pickVoice(); queue = chunks(summary); qi = 0; speaking = true;
+  $("listen").hidden = true; $("pause").hidden = false; $("stopL").hidden = false; $("pause").textContent = "⏸ Pausar";
+  playNext();
+}
+function stopListen() { speaking = false; if (synth) synth.cancel(); $("listen").hidden = false; $("pause").hidden = true; $("stopL").hidden = true; }
+if (synth) synth.onvoiceschanged = () => { curVoice = pickVoice(); };
+$("listen").onclick = startListen; $("stopL").onclick = stopListen;
+$("pause").onclick = () => { if (synth.paused) { synth.resume(); $("pause").textContent = "⏸ Pausar"; } else { synth.pause(); $("pause").textContent = "▶ Continuar"; } };
+$("rate").onchange = () => { if (speaking) { const i = Math.max(0, qi - 1); synth.cancel(); qi = i; playNext(); } };
+window.addEventListener("pagehide", stopListen);
 
 async function copy(text, btn) {
   try { await navigator.clipboard.writeText(text); } catch (_) {
