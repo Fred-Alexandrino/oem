@@ -45,6 +45,7 @@
     <button id="copyPrompt">Copiar p/ colar no Gemini/Claude</button>
     <button id="again">Refazer</button>
     <button class="pri" id="listen">🔊 Ouvir</button><button id="pause" hidden>⏸ Pausar</button><button id="stopL" hidden>⏹ Parar</button>
+    <audio id="player" controls hidden style="width:100%;margin-top:12px"></audio>
     <select id="rate" title="Velocidade" style="width:auto;padding:8px;margin:10px 8px 0 0"><option value="0.9">0,9×</option><option value="1" selected>1×</option><option value="1.15">1,15×</option><option value="1.3">1,3×</option><option value="1.5">1,5×</option></select>
   </div>
 
@@ -97,7 +98,7 @@ const ls = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
 };
-let data = null, userContent = "", summary = "";
+let curName = "", data = null, userContent = "", summary = "";
 
 function cfg() {
   return { srv: ls.get("srv", "https://wpp.147.15.66.241.sslip.io"), sec: ls.get("sec", ""), gh: ls.get("gh", ""), repo: ls.get("repo", "Fred-Alexandrino/resumos-whatsapp"), key: ls.get("key", ""), model: ls.get("model", "gemini-2.5-flash"), prompt: ls.get("prompt", DEFAULT_PROMPT) };
@@ -142,10 +143,10 @@ async function callGemini(model, c) {
 
 const b64e = (t) => btoa(unescape(encodeURIComponent(t)));
 const b64d = (t) => decodeURIComponent(escape(atob(t.replace(/\n/g, ""))));
-function ghFetch(path, opt) {
+function ghFetch(path, opt, raw) {
   const c = cfg();
   return fetch(`https://api.github.com/repos/${c.repo}/contents/${path}`, Object.assign({}, opt, {
-    headers: { Authorization: "Bearer " + c.gh.replace(/[^\x21-\x7E]/g, ""), Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "content-type": "application/json" }
+    headers: { Authorization: "Bearer " + c.gh.replace(/[^\x21-\x7E]/g, ""), Accept: raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "content-type": "application/json" }
   }));
 }
 function stamp() {
@@ -169,7 +170,7 @@ async function viaGithub() {
       $("status").textContent = `Enviado. O Claude está resumindo no GitHub… (${s}s) — pode fechar: o resumo ficará em resumos/${name}`;
       await sleep(10000);
       const g = await ghFetch("resumos/" + name);
-      if (g.ok) { const j = await g.json(); showSummary(b64d(j.content), "Resumo gerado pelo Claude · " + name); return; }
+      if (g.ok) { const j = await g.json(); curName = name; showSummary(b64d(j.content), "Resumo gerado pelo Claude · " + name); return; }
       if (g.status !== 404) throw new Error(`GitHub ${g.status}: ${(await g.text()).slice(0, 300)}`);
     }
     throw new Error("O resumo ainda não ficou pronto. Veja a aba Actions do repositório ou abra esta página depois.");
@@ -185,7 +186,7 @@ async function waitSummary(name, t0) {
     $("status").textContent = `O Claude está resumindo… (${Math.round((Date.now() - t0) / 1000)}s)`;
     await sleep(10000);
     const g = await ghFetch("resumos/" + name);
-    if (g.ok) { showSummary(b64d((await g.json()).content), "Resumo gerado pelo Claude · " + name); return; }
+    if (g.ok) { curName = name; showSummary(b64d((await g.json()).content), "Resumo gerado pelo Claude · " + name); return; }
     if (g.status !== 404) throw new Error(`GitHub ${g.status}`);
   }
   throw new Error("O resumo ainda não ficou pronto. Tente abrir a página de novo em alguns minutos.");
@@ -216,7 +217,7 @@ async function loadLatest() {
     const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin:8px 0;padding:8px";
     files.slice(0, 30).forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n.replace(".md", ""); sel.appendChild(o); });
     $("meta").textContent = ""; $("meta").appendChild(sel);
-    const open = async () => { const g = await ghFetch("resumos/" + sel.value); if (g.ok) showSummary(b64d((await g.json()).content), ""); };
+    const open = async () => { stopListen(); curName = sel.value; const g = await ghFetch("resumos/" + sel.value); if (g.ok) showSummary(b64d((await g.json()).content), ""); };
     sel.onchange = open; await open();
   } catch (e) { showErr(String(e.message || e)); $("status").textContent = ""; }
 }
@@ -305,18 +306,37 @@ function playNext() {
   u.onend = playNext; u.onerror = (e) => { if (e.error !== "canceled" && e.error !== "interrupted") playNext(); };
   synth.speak(u);
 }
-function startListen() {
+function speakBrowser() {
   if (!synth) { showErr("Este navegador não tem leitura em voz."); return; }
   if (!summary) return;
   synth.cancel(); curVoice = pickVoice(); queue = chunks(summary); qi = 0; speaking = true;
   $("listen").hidden = true; $("pause").hidden = false; $("stopL").hidden = false; $("pause").textContent = "⏸ Pausar";
   playNext();
 }
-function stopListen() { speaking = false; if (synth) synth.cancel(); $("listen").hidden = false; $("pause").hidden = true; $("stopL").hidden = true; }
+async function startListen() {
+  if (curName) {
+    $("status").textContent = "Carregando a voz natural…";
+    try {
+      const g = await ghFetch("resumos/" + curName.replace(/\.md$/, ".mp3"), {}, true);
+      if (g.ok) {
+        const b = await g.blob(); const a = $("player");
+        if (a.dataset.url) URL.revokeObjectURL(a.dataset.url);
+        a.dataset.url = URL.createObjectURL(new Blob([b], { type: "audio/mpeg" }));
+        a.src = a.dataset.url; a.hidden = false; a.playbackRate = parseFloat($("rate").value) || 1;
+        $("status").textContent = ""; $("stopL").hidden = false;
+        try { await a.play(); } catch (_) {}
+        return;
+      }
+    } catch (_) {}
+    $("status").textContent = "Áudio natural ainda não está pronto; usando a voz do aparelho.";
+  }
+  speakBrowser();
+}
+function stopListen() { speaking = false; if (synth) synth.cancel(); const a = $("player"); if (a) { a.pause(); a.hidden = true; } $("listen").hidden = false; $("pause").hidden = true; $("stopL").hidden = true; }
 if (synth) synth.onvoiceschanged = () => { curVoice = pickVoice(); };
 $("listen").onclick = startListen; $("stopL").onclick = stopListen;
 $("pause").onclick = () => { if (synth.paused) { synth.resume(); $("pause").textContent = "⏸ Pausar"; } else { synth.pause(); $("pause").textContent = "▶ Continuar"; } };
-$("rate").onchange = () => { if (speaking) { const i = Math.max(0, qi - 1); synth.cancel(); qi = i; playNext(); } };
+$("rate").onchange = () => { $("player").playbackRate = parseFloat($("rate").value) || 1; if (speaking) { const i = Math.max(0, qi - 1); synth.cancel(); qi = i; playNext(); } };
 window.addEventListener("pagehide", stopListen);
 
 async function copy(text, btn) {
