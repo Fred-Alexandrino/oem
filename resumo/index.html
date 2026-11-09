@@ -38,6 +38,7 @@
     <button class="pri" id="saveKey">Salvar e resumir</button>
   </div>
 
+  <div id="nowbox" hidden><button class="pri" id="now">⚡ Gerar resumo agora (lê pelo servidor do WhatsApp)</button></div>
   <div id="out" hidden></div>
   <div id="actions" hidden>
     <button class="pri" id="copy">Copiar resumo</button>
@@ -51,6 +52,10 @@
     <summary>Configurações</summary>
     <label>Token do GitHub (modo Claude via GitHub)</label>
     <input id="gh2" type="password" autocomplete="off" placeholder="github_pat_...">
+    <label>Servidor do WhatsApp (endereço)</label>
+    <input id="srv2">
+    <label>Senha do servidor (WEBHOOK_SECRET)</label>
+    <input id="sec2" type="password" autocomplete="off">
     <label>Repositório privado</label>
     <input id="repo2">
     <label>Chave da API do Gemini (modo alternativo)</label>
@@ -95,11 +100,11 @@ const ls = {
 let data = null, userContent = "", summary = "";
 
 function cfg() {
-  return { gh: ls.get("gh", ""), repo: ls.get("repo", "Fred-Alexandrino/resumos-whatsapp"), key: ls.get("key", ""), model: ls.get("model", "gemini-2.5-flash"), prompt: ls.get("prompt", DEFAULT_PROMPT) };
+  return { srv: ls.get("srv", "https://wpp.147.15.66.241.sslip.io"), sec: ls.get("sec", ""), gh: ls.get("gh", ""), repo: ls.get("repo", "Fred-Alexandrino/resumos-whatsapp"), key: ls.get("key", ""), model: ls.get("model", "gemini-2.5-flash"), prompt: ls.get("prompt", DEFAULT_PROMPT) };
 }
 function loadCfgUI() {
   const c = cfg();
-  $("key2").value = c.key; $("gh2").value = c.gh; $("repo2").value = c.repo; $("model").value = c.model; $("prompt").value = c.prompt;
+  $("key2").value = c.key; $("gh2").value = c.gh; $("srv2").value = c.srv; $("sec2").value = c.sec; $("repo2").value = c.repo; $("model").value = c.model; $("prompt").value = c.prompt;
 }
 function showErr(t) { $("err").hidden = !t; $("err").textContent = t || ""; }
 
@@ -174,9 +179,35 @@ async function viaGithub() {
 }
 function route() { return cfg().gh ? viaGithub() : summarize(); }
 
+
+async function waitSummary(name, t0) {
+  while (Date.now() - t0 < 12 * 60 * 1000) {
+    $("status").textContent = `O Claude está resumindo… (${Math.round((Date.now() - t0) / 1000)}s)`;
+    await sleep(10000);
+    const g = await ghFetch("resumos/" + name);
+    if (g.ok) { showSummary(b64d((await g.json()).content), "Resumo gerado pelo Claude · " + name); return; }
+    if (g.status !== 404) throw new Error(`GitHub ${g.status}`);
+  }
+  throw new Error("O resumo ainda não ficou pronto. Tente abrir a página de novo em alguns minutos.");
+}
+async function generateNow() {
+  const c = cfg(); showErr(""); $("out").hidden = true; $("nowbox").hidden = true;
+  if (!c.sec) { showErr("Falta a senha do servidor (Configurações)."); $("nowbox").hidden = false; return; }
+  $("status").textContent = "Pedindo ao servidor do WhatsApp…";
+  try {
+    const r = await fetch(c.srv + "/api/enviar-resumo", { method: "POST", headers: { "x-webhook-secret": c.sec } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || ("Servidor respondeu " + r.status));
+    $("status").textContent = `Enviado (${j.total} mensagens de ${j.grupos} grupos). Aguardando o Claude…`;
+    await waitSummary(j.arquivo, Date.now());
+  } catch (e) { showErr(String(e.message || e)); $("status").textContent = ""; }
+  $("nowbox").hidden = false;
+}
+$("now").onclick = generateNow;
+
 async function loadLatest() {
   if (!cfg().gh) return;
-  $("keybox").hidden = true; $("status").textContent = "Buscando resumos…";
+  $("keybox").hidden = true; $("nowbox").hidden = false; $("status").textContent = "Buscando resumos…";
   try {
     const r = await ghFetch("resumos");
     if (!r.ok) throw new Error(`GitHub ${r.status}`);
@@ -299,7 +330,7 @@ $("copy").onclick = () => copy(summary, $("copy"));
 $("copyPrompt").onclick = () => copy(cfg().prompt + "\n\n" + userContent, $("copyPrompt"));
 $("again").onclick = () => data && route();
 $("saveKey").onclick = () => { if ($("ghkey").value.trim()) ls.set("gh", $("ghkey").value.trim()); if ($("key").value.trim()) ls.set("key", $("key").value.trim()); loadCfgUI(); if (data) route(); else loadLatest(); };
-$("saveCfg").onclick = () => { ls.set("gh", $("gh2").value.trim()); ls.set("repo", $("repo2").value.trim() || "Fred-Alexandrino/resumos-whatsapp"); ls.set("key", $("key2").value.trim()); ls.set("model", $("model").value.trim() || "gemini-2.5-flash"); ls.set("prompt", $("prompt").value.trim() || DEFAULT_PROMPT); $("saveCfg").textContent = "Salvo ✓"; setTimeout(() => ($("saveCfg").textContent = "Salvar"), 1500); };
+$("saveCfg").onclick = () => { ls.set("srv", $("srv2").value.trim().replace(/\/$/, "")); ls.set("sec", $("sec2").value.trim()); ls.set("gh", $("gh2").value.trim()); ls.set("repo", $("repo2").value.trim() || "Fred-Alexandrino/resumos-whatsapp"); ls.set("key", $("key2").value.trim()); ls.set("model", $("model").value.trim() || "gemini-2.5-flash"); ls.set("prompt", $("prompt").value.trim() || DEFAULT_PROMPT); $("saveCfg").textContent = "Salvo ✓"; setTimeout(() => ($("saveCfg").textContent = "Salvar"), 1500); };
 $("resetPrompt").onclick = () => ($("prompt").value = DEFAULT_PROMPT);
 
 loadCfgUI();
