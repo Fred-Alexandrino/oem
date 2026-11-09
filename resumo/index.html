@@ -174,12 +174,12 @@ function route() { return cfg().gh ? viaGithub() : summarize(); }
 
 async function loadLatest() {
   if (!cfg().gh) return;
-  $("status").textContent = "Buscando resumos…";
+  $("keybox").hidden = true; $("status").textContent = "Buscando resumos…";
   try {
     const r = await ghFetch("resumos");
     if (!r.ok) throw new Error(`GitHub ${r.status}`);
     const files = (await r.json()).filter((f) => f.name.endsWith(".md")).map((f) => f.name).sort().reverse();
-    if (!files.length) { $("status").textContent = "Ainda não há resumos."; return; }
+    if (!files.length) { $("status").textContent = "Token OK ✓. Ainda não há resumos: rode o favorito \"Resumo WhatsApp\" no computador. Quando o resumo ficar pronto, ele aparece aqui."; return; }
     const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin:8px 0;padding:8px";
     files.slice(0, 30).forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n.replace(".md", ""); sel.appendChild(o); });
     $("meta").textContent = ""; $("meta").appendChild(sel);
