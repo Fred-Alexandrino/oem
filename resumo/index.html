@@ -31,7 +31,9 @@
   <div id="err" hidden></div>
 
   <div id="keybox" hidden>
-    <label>Cole sua chave da API do Gemini (aistudio.google.com/apikey)</label>
+    <label>Cole o token do GitHub (recomendado: o Claude resume pelo seu plano)</label>
+    <input id="ghkey" type="password" placeholder="github_pat_..." autocomplete="off">
+    <label>…ou a chave da API do Gemini (aistudio.google.com/apikey)</label>
     <input id="key" type="password" placeholder="AIza..." autocomplete="off">
     <button class="pri" id="saveKey">Salvar e resumir</button>
   </div>
@@ -45,7 +47,11 @@
 
   <details>
     <summary>Configurações</summary>
-    <label>Chave da API do Gemini</label>
+    <label>Token do GitHub (modo Claude via GitHub)</label>
+    <input id="gh2" type="password" autocomplete="off" placeholder="github_pat_...">
+    <label>Repositório privado</label>
+    <input id="repo2">
+    <label>Chave da API do Gemini (modo alternativo)</label>
     <input id="key2" type="password" autocomplete="off">
     <label>Modelo</label>
     <input id="model">
@@ -87,11 +93,11 @@ const ls = {
 let data = null, userContent = "", summary = "";
 
 function cfg() {
-  return { key: ls.get("key", ""), model: ls.get("model", "gemini-2.5-flash"), prompt: ls.get("prompt", DEFAULT_PROMPT) };
+  return { gh: ls.get("gh", ""), repo: ls.get("repo", "Fred-Alexandrino/resumos-whatsapp"), key: ls.get("key", ""), model: ls.get("model", "gemini-2.5-flash"), prompt: ls.get("prompt", DEFAULT_PROMPT) };
 }
 function loadCfgUI() {
   const c = cfg();
-  $("key2").value = c.key; $("model").value = c.model; $("prompt").value = c.prompt;
+  $("key2").value = c.key; $("gh2").value = c.gh; $("repo2").value = c.repo; $("model").value = c.model; $("prompt").value = c.prompt;
 }
 function showErr(t) { $("err").hidden = !t; $("err").textContent = t || ""; }
 
@@ -124,6 +130,62 @@ async function callGemini(model, c) {
   }
   if (cand && cand.finishReason === "MAX_TOKENS") text += "\n\n(resumo cortado por limite de tamanho)";
   return text;
+}
+
+
+const b64e = (t) => btoa(unescape(encodeURIComponent(t)));
+const b64d = (t) => decodeURIComponent(escape(atob(t.replace(/\n/g, ""))));
+function ghFetch(path, opt) {
+  const c = cfg();
+  return fetch(`https://api.github.com/repos/${c.repo}/contents/${path}`, Object.assign({}, opt, {
+    headers: { Authorization: "Bearer " + c.gh, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "content-type": "application/json" }
+  }));
+}
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
+function showSummary(text, label) {
+  summary = text; $("out").textContent = text; $("out").hidden = false; $("actions").hidden = false; $("copy").hidden = false;
+  $("status").textContent = label || "";
+}
+async function viaGithub() {
+  showErr(""); $("keybox").hidden = true; $("out").hidden = true; $("actions").hidden = true;
+  const name = stamp() + ".md";
+  $("status").textContent = "Enviando mensagens ao repositório privado…";
+  try {
+    const r = await ghFetch("inbox/" + name, { method: "PUT", body: JSON.stringify({ message: "Mensagens " + name, content: b64e(userContent) }) });
+    if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 300)}`);
+    const t0 = Date.now();
+    while (Date.now() - t0 < 12 * 60 * 1000) {
+      const s = Math.round((Date.now() - t0) / 1000);
+      $("status").textContent = `Enviado. O Claude está resumindo no GitHub… (${s}s) — pode fechar: o resumo ficará em resumos/${name}`;
+      await sleep(10000);
+      const g = await ghFetch("resumos/" + name);
+      if (g.ok) { const j = await g.json(); showSummary(b64d(j.content), "Resumo gerado pelo Claude · " + name); return; }
+      if (g.status !== 404) throw new Error(`GitHub ${g.status}: ${(await g.text()).slice(0, 300)}`);
+    }
+    throw new Error("O resumo ainda não ficou pronto. Veja a aba Actions do repositório ou abra esta página depois.");
+  } catch (e) {
+    showErr(String(e.message || e)); $("status").textContent = ""; $("actions").hidden = false; $("copy").hidden = true;
+  }
+}
+function route() { return cfg().gh ? viaGithub() : summarize(); }
+
+async function loadLatest() {
+  if (!cfg().gh) return;
+  $("status").textContent = "Buscando resumos…";
+  try {
+    const r = await ghFetch("resumos");
+    if (!r.ok) throw new Error(`GitHub ${r.status}`);
+    const files = (await r.json()).filter((f) => f.name.endsWith(".md")).map((f) => f.name).sort().reverse();
+    if (!files.length) { $("status").textContent = "Ainda não há resumos."; return; }
+    const sel = document.createElement("select"); sel.style.cssText = "width:100%;margin:8px 0;padding:8px";
+    files.slice(0, 30).forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n.replace(".md", ""); sel.appendChild(o); });
+    $("meta").textContent = ""; $("meta").appendChild(sel);
+    const open = async () => { const g = await ghFetch("resumos/" + sel.value); if (g.ok) showSummary(b64d((await g.json()).content), ""); };
+    sel.onchange = open; await open();
+  } catch (e) { showErr(String(e.message || e)); $("status").textContent = ""; }
 }
 
 async function summarize() {
@@ -176,7 +238,7 @@ window.addEventListener("message", (e) => {
   $("meta").textContent = `${d.groups.length} grupo(s) · ${d.count} mensagens` + (d.groups.some((g) => g.partial) ? " · ⚠ histórico incompleto em algum grupo" : "");
   document.title = "Resumo — " + d.groups.length + " grupo(s)";
   $("copy").hidden = false;
-  summarize();
+  route();
 });
 
 async function copy(text, btn) {
@@ -188,14 +250,15 @@ async function copy(text, btn) {
 
 $("copy").onclick = () => copy(summary, $("copy"));
 $("copyPrompt").onclick = () => copy(cfg().prompt + "\n\n" + userContent, $("copyPrompt"));
-$("again").onclick = () => data && summarize();
-$("saveKey").onclick = () => { ls.set("key", $("key").value.trim()); loadCfgUI(); if (data) summarize(); };
-$("saveCfg").onclick = () => { ls.set("key", $("key2").value.trim()); ls.set("model", $("model").value.trim() || "gemini-2.5-flash"); ls.set("prompt", $("prompt").value.trim() || DEFAULT_PROMPT); $("saveCfg").textContent = "Salvo ✓"; setTimeout(() => ($("saveCfg").textContent = "Salvar"), 1500); };
+$("again").onclick = () => data && route();
+$("saveKey").onclick = () => { if ($("ghkey").value.trim()) ls.set("gh", $("ghkey").value.trim()); if ($("key").value.trim()) ls.set("key", $("key").value.trim()); loadCfgUI(); if (data) route(); else loadLatest(); };
+$("saveCfg").onclick = () => { ls.set("gh", $("gh2").value.trim()); ls.set("repo", $("repo2").value.trim() || "Fred-Alexandrino/resumos-whatsapp"); ls.set("key", $("key2").value.trim()); ls.set("model", $("model").value.trim() || "gemini-2.5-flash"); ls.set("prompt", $("prompt").value.trim() || DEFAULT_PROMPT); $("saveCfg").textContent = "Salvo ✓"; setTimeout(() => ($("saveCfg").textContent = "Salvar"), 1500); };
 $("resetPrompt").onclick = () => ($("prompt").value = DEFAULT_PROMPT);
 
 loadCfgUI();
 if (window.opener) window.opener.postMessage("resumo:ready", "*");
-else $("status").textContent = "Abra esta página pelo favorito \"Resumo WhatsApp\", com uma conversa aberta no WhatsApp Web.";
+else if (cfg().gh) loadLatest();
+else { $("keybox").hidden = false; $("status").textContent = "Cole o token do GitHub para ver os resumos."; }
 </script>
 </body>
 </html>
