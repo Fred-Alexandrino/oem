@@ -11,9 +11,9 @@ input{width:100%;box-sizing:border-box;font:inherit;padding:8px 10px;border:1px 
 <p class="mut">Se não conseguir arrastar: clique em "Copiar código", crie um favorito novo (botão direito na barra &gt; Adicionar página), deixe o nome "Resumo WhatsApp" e cole o código no campo URL.</p>
 <button id="cp">Copiar código do favorito</button>
 
-<h2>2. Instalar a extensão "Ponte Claude" (para enviar ao Claude sozinho)</h2>
-<p>Descompacte o <b>ponte-claude.zip</b>, abra <b>chrome://extensions</b>, ligue o <b>Modo do desenvolvedor</b> e clique em <b>Carregar sem compactação</b> escolhendo a pasta. Depois recarregue o WhatsApp Web (F5). Com ela, ao terminar a leitura o favorito abre o Claude com o texto já colado e você só aperta <b>Enter</b>. Sem a extensão, o favorito copia o texto e abre o Claude para você colar (Ctrl+V).</p>
-<p class="mut">Opcional (modo Gemini): se preferir o resumo pela página do Gemini, cole aqui o endereço da página de resumo e arraste os botões de novo. Em branco = Claude.</p>
+<h2>2. Configurar o resumo automático (Claude via GitHub)</h2>
+<p>Não precisa de extensão nem de Enter. Deixe o endereço abaixo como está e arraste os botões de novo. Na primeira vez, a página de resumo pede o <b>token do GitHub</b> (cole uma vez). O favorito envia as mensagens ao repositório privado, o Claude resume lá e o resultado aparece na página.</p>
+<p class="mut">Endereço da página de resumo (não altere). Só mude se for usar a extensão antiga, deixando em branco.</p>
 <input id="url" value="https://fred-alexandrino.github.io/oem/resumo/" placeholder="https://fred-alexandrino.github.io/oem/resumo/  (página de resumo)" autocomplete="off">
 
 <h2>3. Usar</h2>
